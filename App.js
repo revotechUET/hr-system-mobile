@@ -1,28 +1,44 @@
+import * as Font from 'expo-font';
 import React from 'react';
-import { Platform, StyleSheet, StatusBar } from 'react-native';
-import SafeAreaView from 'react-native-safe-area-view';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
+import SafeAreaView from 'react-native-safe-area-view';
+import './Font';
 import AppNavigator from './src/navigation/AppNavigator';
+import LoadingScreen from './src/screens/LoadingScreen';
+import Colors from './src/constants/Colors';
 
-export default function App() {
-  return (
-    <SafeAreaProvider>
-    <StatusBar barStyle={'dark-content'} />
-      <SafeAreaView style={styles.container}>
-        <AppNavigator style={styles.navigator} />
-      </SafeAreaView>
-    </SafeAreaProvider>
-  );
+
+export default class App extends React.Component {
+  state = {
+    ready: false
+  }
+  async componentDidMount() {
+    await Font.loadAsync(
+      'antoutline',
+      // eslint-disable-next-line
+      require('@ant-design/icons-react-native/fonts/antoutline.ttf')
+    );
+    this.setState({ ready: true });
+  }
+  render() {
+    const { ready } = this.state;
+    if (!ready) return <LoadingScreen />;
+    return (
+      <SafeAreaProvider>
+        <StatusBar barStyle={'dark-content'} backgroundColor={Colors.primaryBackground} />
+        <SafeAreaView style={styles.container}>
+          <AppNavigator />
+        </SafeAreaView>
+      </SafeAreaProvider>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: Platform.OS === 'android' && StatusBar.currentHeight || '',
+    marginTop: Platform.OS === 'android' && StatusBar.currentHeight || '', // fix notch
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.primaryBackground,
   },
-  navigator: {
-    overflow: Platform.OS === 'web' && 'auto' || 'scroll',
-  }
 });

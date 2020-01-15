@@ -1,19 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet, StatusBar, Platform } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
+import ScreenContainer from '../components/ScreenContainer';
 
 export default function HomeScreen() {
   return (
-    <View style={styles.container}>
+    <ScreenContainer style={styles.container}>
       <Text>HR App</Text>
-      {Platform.OS === 'android' && <Text>Status bar height: {StatusBar.currentHeight}px</Text>}
-    </View>
+    </ScreenContainer>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
   },

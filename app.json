@@ -24,7 +24,12 @@
       "**/*"
     ],
     "ios": {
+      "bundleIdentifier": "com.revotech.hrapp",
       "supportsTablet": true
+    },
+    "android": {
+      "package": "com.revotech.hrapp",
+      "googleServicesFile": "./google-services.json"
     }
   }
 }

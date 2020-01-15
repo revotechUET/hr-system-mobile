@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "909603359091",
+    "firebase_url": "https://testgsuite-262402.firebaseio.com",
+    "project_id": "testgsuite-262402",
+    "storage_bucket": "testgsuite-262402.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:909603359091:android:da0d73747f7241baad9d06",
+        "android_client_info": {
+          "package_name": "com.revotech.hrapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "909603359091-r8tp2i83vprvgk1bv8ju8acd4fh826rt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.revotech.hrapp",
+            "certificate_hash": "746a60d2537d17afa0c3fafbc0ef914a35f2c862"
+          }
+        },
+        {
+          "client_id": "909603359091-867op848f6mob3adp4pask1apok24rej.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdFU4f0JwtJtq6FnQ4Fn41bcQbYkdfg_U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "909603359091-867op848f6mob3adp4pask1apok24rej.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
