@@ -3,7 +3,7 @@ import React from 'react';
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import SafeAreaView from 'react-native-safe-area-view';
-import './Font';
+import './bootstrap';
 import AppNavigator from './src/navigation/AppNavigator';
 import LoadingScreen from './src/screens/LoadingScreen';
 import Colors from './src/constants/Colors';
@@ -37,7 +37,7 @@ export default class App extends React.Component {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: Platform.OS === 'android' && StatusBar.currentHeight || '', // fix notch
+    // paddingTop: Platform.OS === 'android' && StatusBar.currentHeight || '', // fix notch
     flex: 1,
     backgroundColor: Colors.primaryBackground,
   },

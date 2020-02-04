@@ -2,7 +2,6 @@ import { CodedError } from '@unimodules/core';
 import * as AppAuth from 'expo-app-auth';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import StorageService from './StorageService';
 
 const isInExpo = Constants.appOwnership === 'expo';
 
@@ -82,6 +81,12 @@ function guidFromClientId(clientId) {
   return guid;
 }
 
+export async function userInfoAsync({ accessToken }) {
+  return fetch('https://www.googleapis.com/userinfo/v2/me', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 export async function logInAsync(config) {
   const userDefinedScopes = config.scopes || [];
   /* Add the required scopes for returning profile data. */
@@ -102,22 +107,17 @@ export async function logInAsync(config) {
       redirectUrl,
       clientId,
       additionalParameters: {
-        prompt: 'select_account',
         ...(config.additionalParameters || {})
       },
     });
 
     // Web login only returns an accessToken so use it to fetch the same info as the native login does.
-    const userInfoResponse = await fetch('https://www.googleapis.com/userinfo/v2/me', {
-      headers: { Authorization: `Bearer ${logInResult.accessToken}` },
-    });
+    const userInfoResponse = await userInfoAsync(logInResult);
     const userInfo = await userInfoResponse.json();
 
     return {
       type: 'success',
-      accessToken: logInResult.accessToken,
-      idToken: logInResult.idToken,
-      refreshToken: logInResult.refreshToken,
+      auth: logInResult,
       user: {
         id: userInfo.id,
         name: userInfo.name,
@@ -134,7 +134,12 @@ export async function logInAsync(config) {
     throw error;
   }
 }
-
+export async function refreshAuthAsync({ refreshToken, config }) {
+  return AppAuth.refreshAsync({
+    issuer: 'https://accounts.google.com',
+    ...config
+  }, refreshToken);
+}
 export async function logOutAsync({ accessToken, ...inputConfig }) {
   const guid = getPlatformGUID(inputConfig);
 

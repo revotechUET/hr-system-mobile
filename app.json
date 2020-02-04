@@ -28,8 +28,10 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.revotech.hrapp",
-      "googleServicesFile": "./google-services.json"
+      "package": "com.revotech.hrapp"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#fcfcfc"
     }
   }
 }

@@ -145,7 +145,7 @@ export default class ReviewRequestScreen extends React.Component {
   }
 }
 
-const ModalReview = ({ close, visible, code, name, from, to, reason, status, description }) => (
+const ModalReview = ({ close, visible, id, name, from, to, reason, status, description }) => (
   <Modal
     transparent
     onRequestClose={close}
@@ -156,7 +156,7 @@ const ModalReview = ({ close, visible, code, name, from, to, reason, status, des
         <CircleButton onPress={close}>
           <Icon name='arrow-left' size={18} />
         </CircleButton>
-        <BodyText style={{ marginLeft: 10 }}>Yêu cầu nghỉ {code}</BodyText>
+        <BodyText style={{ marginLeft: 10 }}>Yêu cầu nghỉ {id}</BodyText>
       </View>
       <Divider />
       <View style={styles.infoContainer}>
@@ -240,7 +240,7 @@ const ListItem = (props) => {
             <Text style={styles.label}>Lý do nghỉ</Text>
             <BodyText style={[s.flexFill, s.textCenter]}>
               {
-                reason === 0 ? 'Lý do cá nhân' : reason === 1 ? 'Đi công vụ' : 'Đi công tác'
+                reason === '0' ? 'Lý do cá nhân' : reason === '1' ? 'Đi công vụ' : 'Đi công tác'
               }
             </BodyText>
           </View>
@@ -248,13 +248,13 @@ const ListItem = (props) => {
             <Text style={styles.label}>Trạng thái</Text>
             <BodyText style={[s.flexFill, s.textCenter]}>
               {
-                status === 0 ? 'Chờ phê duyệt' : status === 1 ? 'Đã phê duyệt' : status === 2 ? 'Đã từ chối' : 'Đã huỷ'
+                status === 'waiting' ? 'Chờ phê duyệt' : status === 1 ? 'Đã phê duyệt' : status === 2 ? 'Đã từ chối' : 'Đã huỷ'
               }
             </BodyText>
           </View>
         </View>
       </TouchableNativeFeedback>
-      <ModalReview visible={modalReview} close={() => setModalReview(false)} {...props} />
+      {modalReview && <ModalReview visible={modalReview} close={() => setModalReview(false)} {...props} />}
     </View>
   )
 }
@@ -293,6 +293,7 @@ const styles = StyleSheet.create({
     flex: 1,
     maxWidth: '35%',
     fontSize: 16,
+    marginRight: 5,
   },
   value: {
     fontSize: 16,

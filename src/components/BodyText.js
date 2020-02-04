@@ -11,3 +11,13 @@ export default function BodyText({ children, size = 16, style, ...props }) {
     </Text>
   )
 }
+
+export function ErrorText({ children, size = 14, style, ...props }) {
+  return (
+    <Text {...props}
+      style={[{ fontSize: size, color: Colors.errorText }, style]}
+    >
+      {children}
+    </Text>
+  )
+}

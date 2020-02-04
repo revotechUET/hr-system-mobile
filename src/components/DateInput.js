@@ -8,28 +8,29 @@ import Icon from './Icon';
 
 export default class DateInput extends React.Component {
   state = {
-    isPicking: false,
+    pickDate: false,
     dateValue: null,
   }
   onChangeFirst = (event, date) => {
     const { mode } = this.props;
-    this.setState({ isPicking: false });
+    this.setState({ pickDate: false });
     if (!date) return;
-    this.props.onChange && this.props.onChange(event, date);
     if (mode === 'datetime') {
-      this.setState({ dateValue: date })
+      this.setState({ dateValue: date, pickTime: true })
+    } else {
+      this.props.onChange && this.props.onChange(event, date);
     }
   }
-  onChangeSecond = (event, date) => {
+  onChangeSecond = (event, time) => {
     const { dateValue } = this.state;
-    this.setState({ isPicking: false, dateValue: null });
-    if (!date) return;
-    date.setFullYear(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate());
-    this.props.onChange && this.props.onChange(event, date);
+    this.setState({ dateValue: null, pickTime: false });
+    if (!time) return;
+    time.setFullYear(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate());
+    this.props.onChange && this.props.onChange(event, time);
   }
   render() {
-    const { label, value, mode = 'date', format } = this.props;
-    const { isPicking, dateValue } = this.state;
+    const { label, value, mode = 'date', format, disabled, minDate, maxDate } = this.props;
+    const { pickDate, pickTime, dateValue } = this.state;
     return (
       <View>
         <Text style={{ marginLeft: 10, fontWeight: 'bold' }}>{label}</Text>
@@ -40,19 +41,22 @@ export default class DateInput extends React.Component {
           buttonStyle={{ borderColor: Colors.primaryText }}
           titleStyle={{ color: Colors.primaryText, flex: 1 }}
           icon={<Icon name={['far', 'calendar-alt']} />}
-          onPress={() => this.setState({ isPicking: true })}
+          onPress={() => this.setState({ pickDate: true })}
           iconRight
+          disabled={disabled}
         />
         {
-          isPicking
+          pickDate
           && <DateTimePicker
             mode={mode}
             value={value || new Date()}
             onChange={this.onChangeFirst}
+            minimumDate={minDate}
+            maximumDate={maxDate}
           />
         }
         {
-          mode === 'datetime' && dateValue
+          mode === 'datetime' && dateValue && pickTime
           && <DateTimePicker
             mode='time'
             value={dateValue}

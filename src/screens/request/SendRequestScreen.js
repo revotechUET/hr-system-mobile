@@ -1,35 +1,61 @@
-import { Formik } from 'formik';
+import { Formik, ErrorMessage } from 'formik';
 import React from 'react';
-import { KeyboardAvoidingView, Picker, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Picker, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Input } from 'react-native-elements';
 import { ScrollView } from 'react-native-gesture-handler';
 import { s } from '../../CommonStyles';
+import { ErrorText } from '../../components/BodyText';
 import DateInput from '../../components/DateInput';
 import HrButton from '../../components/HrButton';
 import ScreenContainer from '../../components/ScreenContainer';
 import Colors from '../../constants/Colors';
+import ApiService from '../../services/ApiService';
+import Toast from 'react-native-root-toast';
+import Utils from '../../Utils';
 
 export default class SendRequestScreen extends React.PureComponent {
   state = {
-    fullName: 'Ho va ten',
+    fullName: null,
     remainingLeaves: 9 + '',
-    reason: 1 + '',
-    from: new Date(),
-    to: new Date(),
+    reason: 0 + '',
+    startTime: null,
+    endTime: null,
     notifyList: [],
     description: ``
   }
-  onSubmit = (values) => {
-    console.log(values);
+  async componentDidMount() {
+    const user = await ApiService.getUser();
+    this.setState({ fullName: user.name });
+  }
+  validate = async (values) => {
+    const errors = {};
+    if (values['startTime'] <= new Date) {
+      errors['startTime'] = 'Thời gian bắt đầu không hợp lệ';
+    }
+    if (values['endTime'] <= values['startTime']) {
+      errors['endTime'] = 'Thời gian kết thúc không hợp lệ';
+    }
+    return errors;
+  }
+  onSubmit = async (form, formBag) => {
+    try {
+      await ApiService.sendLeaveRequest({ ...form }, { throw: true });
+      Toast.show('Đã gửi yêu cầu nghỉ', { position: 0 });
+      formBag.resetForm();
+    } catch (error) {
+      Toast.show('Không thể gửi yêu cầu nghỉ');
+    }
   }
   render() {
     return (
       <ScreenContainer style={styles.container}>
         <Formik
+          enableReinitialize
           initialValues={{ ...this.state }}
           onSubmit={this.onSubmit}
+          validate={this.validate}
         >
-          {({ values, handleChange, handleSubmit, setFieldValue, setFieldTouched }) => (
+          {({ values, handleChange, handleSubmit, setFieldValue, setFieldTouched, isSubmitting }) => (
             <View style={{ flex: 1 }}>
               <ScrollView>
                 <Input
@@ -52,28 +78,32 @@ export default class SendRequestScreen extends React.PureComponent {
                     onValueChange={handleChange('reason')}
                     mode='dropdown'
                     style={{ marginLeft: -8 }}
+                    enabled={!isSubmitting}
                   >
-                    <Picker.Item label='Lý do cá nhân' value='0' />
-                    <Picker.Item label='Đi công vụ' value='1' />
-                    <Picker.Item label='Đi công tác' value='2' />
+                    {Utils.leaveReason.all.map(r => <Picker.Item key={r} label={Utils.leaveReason[r]} value={r} />)}
                   </Picker>
                 </FormGroup>
                 <DateInput
                   label='Thời gian nghỉ từ'
-                  value={values['from']}
-                  onChange={(event, date) => setFieldValue('from', date)}
+                  value={values['startTime']}
+                  onChange={(event, date) => setFieldValue('startTime', date)}
                   mode='datetime'
                   format='dd/MM/yyyy hh:mm'
+                  disabled={isSubmitting}
+                  minDate={new Date()}
                 />
+                <ErrorMessage name='startTime'>{msg => <ErrorText style={styles.errorMessage}>{msg}</ErrorText>}</ErrorMessage>
                 <DateInput
                   label='Thời gian nghỉ đến'
-                  value={values['to']}
-                  onChange={(event, date) => setFieldValue('to', date)}
+                  value={values['endTime']}
+                  onChange={(event, date) => setFieldValue('endTime', date)}
                   mode='datetime'
                   format='dd/MM/yyyy hh:mm'
+                  disabled={isSubmitting}
                 />
+                <ErrorMessage name='endTime'>{msg => <ErrorText style={styles.errorMessage}>{msg}</ErrorText>}</ErrorMessage>
                 <FormGroup label='Thông báo cho'>
-                  <Text>TODO:</Text>
+                  <Text>:TODO:</Text>
                 </FormGroup>
                 <FormGroup label='Mô tả'>
                   <TextInput
@@ -82,6 +112,7 @@ export default class SendRequestScreen extends React.PureComponent {
                     value={values['description']}
                     onChangeText={handleChange('description')}
                     underlineColorAndroid={Colors.secondaryText}
+                    editable={!isSubmitting}
                   />
                 </FormGroup>
               </ScrollView>
@@ -105,5 +136,10 @@ const FormGroup = ({ children, label, ...props }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  errorMessage: {
+    marginLeft: 10,
+    marginTop: -5,
+    marginBottom: 10,
   }
 });

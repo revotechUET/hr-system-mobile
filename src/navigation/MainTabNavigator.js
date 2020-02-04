@@ -8,10 +8,9 @@ import LoadingScreen from '../screens/LoadingScreen';
 import NotificationScreen from '../screens/notification/NotificationScreen';
 import RequestScreen from '../screens/request/RequestScreen';
 import UserScreen from '../screens/UserScreen';
+import ApiService from '../services/ApiService';
 import { IconWithBadge, TabBarIcon, UserIcon } from './TabBarIcon';
 import TabBarLabel from './TabBarLabel';
-import { View, Image } from 'react-native';
-import ApiService from '../services/ApiService';
 
 class Username extends React.Component {
   state = {
@@ -113,19 +112,20 @@ const tabNavigator = createMaterialTopTabNavigator(
   },
   {
     order: [
+      'DeviceInfo',
       'CheckIn',
       'History',
       'Request',
       'Notification',
       'User',
-      // 'DeviceInfo',
     ],
     lazy: true,
     lazyPlaceholderComponent: LoadingScreen,
+    tabBarPosition: 'bottom',
     tabBarOptions: {
       showIcon: true,
       indicatorStyle: { backgroundColor: 'none' },
-      style: { backgroundColor: Colors.primaryBackground }
+      style: { backgroundColor: Colors.primaryBackground },
     }
   }
 );

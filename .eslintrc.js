@@ -9,14 +9,18 @@ module.exports = {
   ],
   "globals": {
     "Atomics": "readonly",
-    "SharedArrayBuffer": "readonly"
+    "SharedArrayBuffer": "readonly",
+    "require": "readonly",
+    "module": "readonly",
+    "process": "readonly",
+    "GLOBAL": "readonly",
   },
   "parser": "babel-eslint",
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true,
     },
-    "ecmaVersion": 2019,
+    "ecmaVersion": 2018,
     "sourceType": "module"
   },
   "plugins": [
@@ -32,7 +36,4 @@ module.exports = {
     "react/prop-types": 0,
     "no-unused-vars": 0,
   },
-  "globals": {
-    "require": false,
-  }
 };

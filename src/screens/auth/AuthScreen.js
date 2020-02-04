@@ -11,8 +11,8 @@ export default class AuthScreen extends React.Component {
   }
 
   async componentDidMount() {
-    const auth = await ApiService.getAuth();
-    if (auth) {
+    const auth = await ApiService.getCachedAuthAsync();
+    if (auth && auth.accessToken) {
       this.props.navigation.navigate('App');
     } else {
       this.setState({ ready: true });
@@ -20,9 +20,9 @@ export default class AuthScreen extends React.Component {
   }
 
   signInAsync = async () => {
-    this.setState({ loading: true })
+    this.setState({ loading: true });
     const { type } = await ApiService.login();
-    this.setState({ loading: false })
+    this.setState({ loading: false });
     if (type === 'success') {
       this.props.navigation.navigate('App');
     }
@@ -35,7 +35,7 @@ export default class AuthScreen extends React.Component {
     }
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <GoogleSigninButton onPress={() => this.signInAsync()} disabled={loading} loading={loading} />
+        <GoogleSigninButton onPress={() => this.signInAsync()} loading={loading} />
       </View>
     )
   }

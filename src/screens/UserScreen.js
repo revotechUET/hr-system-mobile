@@ -1,17 +1,29 @@
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import { ListItem } from 'react-native-elements';
-import * as Google from '../services/GoogleAuthService';
 import ScreenContainer from '../components/ScreenContainer';
 import Colors from '../constants/Colors';
-import StorageService from '../services/StorageService';
 import ApiService from '../services/ApiService';
 
 export default class UserScreen extends React.Component {
   signOut = async () => {
-    await ApiService.logout();
-    this.props.navigation.navigate('Auth');
+    Alert.alert('Xác nhận', 'Bạn chắc chắn muốn đăng xuất?', [
+      {
+        text: 'Không',
+        style: 'default'
+      },
+      {
+        text: 'Đăng xuất',
+        style: 'destructive',
+        onPress: async () => {
+          await ApiService.logout();
+          this.props.navigation.navigate('Auth');
+        }
+      }
+    ], {
+      cancelable: true
+    })
   }
   render() {
     return (
@@ -50,7 +62,6 @@ export default class UserScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.primaryBackground,
     margin: 0,
   },
   item: {
