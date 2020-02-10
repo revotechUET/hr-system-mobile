@@ -1,4 +1,3 @@
-import { BlurView } from 'expo-blur';
 import React, { useState } from 'react';
 import { Modal, Picker, StyleSheet, Text, View } from 'react-native';
 import { Input, Divider } from 'react-native-elements';

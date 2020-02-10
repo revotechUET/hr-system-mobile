@@ -1,38 +1,26 @@
 import React from 'react';
 import { View } from 'react-native';
 import GoogleSigninButton from '../../components/GoogleSigninButton';
+import { AuthContext } from '../../Contexts';
 import ApiService from '../../services/ApiService';
-import LoadingScreen from '../LoadingScreen';
 
 export default class AuthScreen extends React.Component {
   state = {
-    ready: false,
     loading: false,
   }
-
-  async componentDidMount() {
-    const auth = await ApiService.getCachedAuthAsync();
-    if (auth && auth.accessToken) {
-      this.props.navigation.navigate('App');
-    } else {
-      this.setState({ ready: true });
-    }
-  }
+  static contextType = AuthContext;
 
   signInAsync = async () => {
     this.setState({ loading: true });
-    const { type } = await ApiService.login();
+    const { type, auth, user } = await ApiService.login();
     this.setState({ loading: false });
     if (type === 'success') {
-      this.props.navigation.navigate('App');
+      this.context.login({ auth, user });
     }
   };
 
   render() {
-    const { loading, ready } = this.state;
-    if (!ready) {
-      return <LoadingScreen />
-    }
+    const { loading } = this.state;
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <GoogleSigninButton onPress={() => this.signInAsync()} loading={loading} />

@@ -84,7 +84,7 @@ function guidFromClientId(clientId) {
 export async function userInfoAsync({ accessToken }) {
   return fetch('https://www.googleapis.com/userinfo/v2/me', {
     headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  }).then(res => res.json());
 }
 
 export async function logInAsync(config) {
@@ -112,8 +112,7 @@ export async function logInAsync(config) {
     });
 
     // Web login only returns an accessToken so use it to fetch the same info as the native login does.
-    const userInfoResponse = await userInfoAsync(logInResult);
-    const userInfo = await userInfoResponse.json();
+    const userInfo = await userInfoAsync(logInResult);
 
     return {
       type: 'success',

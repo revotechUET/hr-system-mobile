@@ -1,69 +1,43 @@
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import React from 'react';
-import { createAppContainer } from 'react-navigation';
-import { createMaterialTopTabNavigator } from 'react-navigation-tabs';
+import { Dimensions } from 'react-native';
 import Colors from '../../constants/Colors';
+import { AuthContext } from '../../Contexts';
 import TabBarLabel from '../../navigation/TabBarLabel';
-import ApiService from '../../services/ApiService';
-import LoadingScreen from '../LoadingScreen';
 import ListRequestScreen from './ListRequestScreen';
 import ReviewRequestScreen from './ReviewRequestScreen';
 import SendRequestScreen from './SendRequestScreen';
 
+const Tab = createMaterialTopTabNavigator();
 export default class RequestNavigator extends React.Component {
-  state = {
-    role: 'user',
-  }
-  async componentDidMount() {
-    const userInfo = await ApiService.userInfo();
-    console.log(userInfo);
-
-    this.setState({ role: userInfo.role });
-  }
+  static contextType = AuthContext;
   render() {
-    const { role } = this.state;
-    const order = [
-      'SendRequest',
-      'ListRequest',
-    ];
-    if (role === 'admin') order.push('ReviewRequest');
-    const Component = createAppContainer(
-      createMaterialTopTabNavigator(
-        {
-          SendRequest: {
-            screen: SendRequestScreen,
-            navigationOptions: {
-              tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Yêu cầu nghỉ' />,
-            }
-          },
-          ListRequest: {
-            screen: ListRequestScreen,
-            navigationOptions: {
-              tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Danh sách yêu cầu nghỉ' />,
-            }
-          },
-          ReviewRequest: {
-            screen: ReviewRequestScreen,
-            navigationOptions: {
-              tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Phê duyệt yêu cầu nghỉ' />,
-            }
-          }
-        },
-        {
-          lazy: true,
-          lazyPlaceholderComponent: LoadingScreen,
-          swipeEnabled: false,
-          order,
-          tabBarOptions: {
-            style: {
-              backgroundColor: Colors.primaryBackground,
-            },
-            indicatorStyle: { backgroundColor: Colors.primaryColor, opacity: 1 },
-          }
-        }
-      )
-    );
-    return <Component />
+    const user = this.context.user || {};
+    const role = user.role;
+    return (
+      <Tab.Navigator lazy swipeEnabled={false}
+        initialLayout={{ width: Dimensions.get('window').width }}
+        tabBarOptions={{
+          showIcon: true,
+          indicatorStyle: { backgroundColor: Colors.primaryColor },
+          // style: { backgroundColor: Colors.primaryBackground },
+        }}>
+        <Tab.Screen name='SendRequest' component={SendRequestScreen}
+          options={{
+            tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Yêu cầu nghỉ' />
+          }}
+        />
+        <Tab.Screen name='ListRequest' component={ListRequestScreen}
+          options={{
+            tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Danh sách yêu cầu nghỉ' />
+          }}
+        />
+        {role === 'admin' && <Tab.Screen name='ReviewRequest' component={ReviewRequestScreen}
+          options={{
+            tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Phê duyệt yêu cầu nghỉ' />
+          }}
+        />}
+      </Tab.Navigator>
+    )
   }
 }
-
-

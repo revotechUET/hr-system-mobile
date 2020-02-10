@@ -1,15 +1,14 @@
-const clientId = '909603359091-o6l8nb673iamoo1lpqheuevhtcd3hu2j.apps.googleusercontent.com';
-const apiKey = 'AIzaSyBdFU4f0JwtJtq6FnQ4Fn41bcQbYkdfg_U';
+const clientId = '116791155078-u2nn02fui1fkgh1lmah2t8lvptaujlkj.apps.googleusercontent.com';
 const authConfig = {
   clientId,
   androidClientId: clientId,
-  apiKey,
   scopes: [
     'openid',
     'email',
     'profile',
     "https://www.googleapis.com/auth/contacts.readonly",
     "https://www.googleapis.com/auth/script.external_request",
+    "https://www.googleapis.com/auth/spreadsheets",
   ],
   additionalParameters: {
     prompt: 'select_account',

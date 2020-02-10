@@ -1,6 +1,8 @@
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import React from 'react';
-import { createMaterialTopTabNavigator } from 'react-navigation-tabs';
+import { Dimensions, Image, View } from 'react-native';
 import Colors from '../constants/Colors';
+import { AuthContext } from '../Contexts';
 import CheckInScreen from '../screens/CheckInScreen';
 import DeviceInfoScreen from '../screens/DeviceInfoScreen';
 import HistoryScreen from '../screens/HistoryScreen';
@@ -8,126 +10,100 @@ import LoadingScreen from '../screens/LoadingScreen';
 import NotificationScreen from '../screens/notification/NotificationScreen';
 import RequestScreen from '../screens/request/RequestScreen';
 import UserScreen from '../screens/UserScreen';
-import ApiService from '../services/ApiService';
-import { IconWithBadge, TabBarIcon, UserIcon } from './TabBarIcon';
+import { IconWithBadge, TabBarIcon } from './TabBarIcon';
 import TabBarLabel from './TabBarLabel';
 
-class Username extends React.Component {
-  state = {
-    username: null,
-  }
+const Tab = createMaterialTopTabNavigator();
 
-  async componentDidMount() {
-    const user = await ApiService.getUser();
-    this.setState({ username: user.name });
-  }
-
-  render() {
-    const { username } = this.state;
-    const { focused } = this.props;
-    return <TabBarLabel focused={focused} label={username} />
-  }
+export default () => {
+  const authContext = React.useContext(AuthContext);
+  const user = authContext.user || {};
+  return (
+    <Tab.Navigator
+      lazy lazyPlaceholder={LoadingScreen}
+      tabBarPosition='bottom'
+      initialLayout={{ width: Dimensions.get('window').width }}
+      tabBarOptions={{
+        showIcon: true,
+        indicatorStyle: { backgroundColor: Colors.primaryColor },
+        // style: { backgroundColor: Colors.primaryBackground },
+      }}
+    >
+{/*
+      <Tab.Screen name='DeviceInfo' component={DeviceInfoScreen}
+        options={{
+          tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Device Info' />,
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon
+              type={'ion'}
+              focused={focused}
+              name='md-information-circle'
+            />
+          ),
+        }}
+      />
+ */}
+      <Tab.Screen name='CheckIn' component={CheckInScreen}
+        options={{
+          tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Chấm công' />,
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon
+              focused={focused}
+              name={['far', 'hand-pointer']}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen name='History' component={HistoryScreen}
+        options={{
+          tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Ngày công' />,
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon
+              focused={focused}
+              name={'list-ul'}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen name='Request' component={RequestScreen}
+        options={{
+          tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Yêu cầu nghỉ' />,
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon
+              type='ant'
+              focused={focused}
+              name={'file-done'}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen name='Notification' component={NotificationScreen}
+        options={{
+          tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Thông báo' />,
+          tabBarIcon: ({ focused }) => (
+            <IconWithBadge
+              focused={focused}
+              name={['far', 'bell']}
+              badgeCount={3}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen name='User' component={UserScreen}
+        options={{
+          tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label={user.name} />,
+          tabBarIcon: ({ focused }) => {
+            return (
+              <View style={{ margin: -4, width: 32, height: 32, borderRadius: 100, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' }}>
+                <Image
+                  source={{ uri: user.photoUrl }}
+                  style={{ width: 30, height: 30, borderRadius: 100 }}
+                />
+              </View>
+            )
+          },
+        }}
+      />
+    </Tab.Navigator>
+  )
 }
-
-const tabNavigator = createMaterialTopTabNavigator(
-  {
-    CheckIn: {
-      screen: CheckInScreen,
-      navigationOptions: {
-        tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Chấm công' />,
-        tabBarIcon: ({ focused }) => (
-          <TabBarIcon
-            focused={focused}
-            name={['far', 'hand-pointer']}
-          />
-        ),
-      },
-      path: ''
-    },
-    History: {
-      screen: HistoryScreen,
-      navigationOptions: {
-        tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Ngày công' />,
-        tabBarIcon: ({ focused }) => (
-          <TabBarIcon
-            focused={focused}
-            name={'list-ul'}
-          />
-        ),
-      },
-      path: 'history'
-    },
-    Request: {
-      screen: RequestScreen,
-      navigationOptions: {
-        tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Yêu cầu nghỉ' />,
-        tabBarIcon: ({ focused }) => (
-          <TabBarIcon
-            type='ant'
-            focused={focused}
-            name={'file-done'}
-          />
-        ),
-      },
-      path: 'request'
-    },
-    Notification: {
-      screen: NotificationScreen,
-      navigationOptions: {
-        tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Thông báo' />,
-        tabBarIcon: ({ focused }) => (
-          <IconWithBadge
-            focused={focused}
-            name={['far', 'bell']}
-            badgeCount={3}
-          />
-        ),
-      },
-      path: 'notification'
-    },
-    User: {
-      screen: UserScreen,
-      navigationOptions: {
-        tabBarLabel: ({ focused }) => <Username focused={focused} />,
-        tabBarIcon: ({ focused }) => {
-          return <UserIcon focused={focused} />
-        },
-      },
-      path: 'user'
-    },
-    DeviceInfo: {
-      screen: DeviceInfoScreen,
-      navigationOptions: {
-        tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Device ìno' />,
-        tabBarIcon: ({ focused }) => (
-          <TabBarIcon
-            type={'ion'}
-            focused={focused}
-            name='md-information-circle'
-          />
-        ),
-      },
-      path: 'device-info'
-    },
-  },
-  {
-    order: [
-      'DeviceInfo',
-      'CheckIn',
-      'History',
-      'Request',
-      'Notification',
-      'User',
-    ],
-    lazy: true,
-    lazyPlaceholderComponent: LoadingScreen,
-    tabBarPosition: 'bottom',
-    tabBarOptions: {
-      showIcon: true,
-      indicatorStyle: { backgroundColor: 'none' },
-      style: { backgroundColor: Colors.primaryBackground },
-    }
-  }
-);
-
-export default tabNavigator;

@@ -61,6 +61,7 @@ class ApiService {
       }
       return res;
     } catch (e) {
+      console.error(e);
       Toast.show('Đăng nhập thất bại');
       return { type: 'fail' }
     }
@@ -90,10 +91,11 @@ class ApiService {
   checkIfTokenExpired({ accessTokenExpirationDate }) {
     return new Date(accessTokenExpirationDate) < new Date();
   }
-  async refreshAccessToken({ refreshToken }) {
+  async refreshAccessToken({ refreshToken, ...prevAuth }) {
     const auth = await Google.refreshAuthAsync({ config: authConfig, refreshToken });
-    await this.cacheAuthAsync(auth);
-    return auth;
+    const newAuth = { ...prevAuth, ...auth, refreshToken };
+    await this.cacheAuthAsync(newAuth);
+    return newAuth;
   }
   async logout() {
     try {
@@ -110,8 +112,7 @@ class ApiService {
     }
   }
   async userInfo() {
-    const auth = await this.getCachedAuthAsync();
-    return Google.userInfoAsync(auth);
+    return this.post('userInfo');
   }
   //#endregion
 

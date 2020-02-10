@@ -14,4 +14,4 @@ web-report/
 .DS_Store
 
 config/*local*
-.vscode
+.vscode/**/*

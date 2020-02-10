@@ -80,27 +80,3 @@ export class IconWithBadge extends React.Component {
     );
   }
 }
-
-export class UserIcon extends React.Component {
-  state = {
-    uri: null
-  }
-
-  async componentDidMount() {
-    const user = await ApiService.getUser();
-    this.setState({ uri: user.photoUrl });
-  }
-
-  render() {
-    const { uri } = this.state;
-    const { focused } = this.props;
-    return (
-      <View style={{ margin: -4, width: 32, height: 32, borderRadius: 100, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' }}>
-        <Image
-          source={{ uri }}
-          style={{ width: 30, height: 30, borderRadius: 100 }}
-        />
-      </View>
-    )
-  }
-}
