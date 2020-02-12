@@ -1,39 +1,14 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
+import Toast from 'react-native-root-toast';
+import { AuthContext } from '../Contexts';
 import AuthScreen from '../screens/auth/AuthScreen';
-import NotificationDetailScreen from '../screens/notification/NotificationDetailScreen';
-import RequestDetailScreen from '../screens/request/RequestDetailScreen';
-import MainTabNavigator from './MainTabNavigator';
 import LoadingScreen from '../screens/LoadingScreen';
 import ApiService from '../services/ApiService';
-import { AuthContext } from '../Contexts';
+import MainTabNavigator from './MainTabNavigator';
 
 const Stack = createStackNavigator();
-const AppStack = () => {
-  return (
-    <Stack.Navigator headerMode='screen'>
-      <Stack.Screen name='Main' component={MainTabNavigator} options={{ headerShown: false }} />
-      <Stack.Screen name='NotificationDetail' component={NotificationDetailScreen}
-        options={({ route }) => {
-          const { title } = route.params || {};
-          return {
-            title,
-          }
-        }}
-      />
-      <Stack.Screen name='RequestDetail' component={RequestDetailScreen}
-        options={({ route }) => {
-          const { title } = route.params || {};
-          return {
-            title,
-          }
-        }}
-      />
-    </Stack.Navigator>
-  )
-}
-
 export default function AppNavigator() {
   const [state, dispatch] = React.useReducer(
     (prevState, { type, ...action }) => {
@@ -78,19 +53,29 @@ export default function AppNavigator() {
 
   React.useEffect(() => {
     (async () => {
-      const auth = await ApiService.getCachedAuthAsync();
-      const user = auth && await ApiService.getUser();
-      const userInfo = auth && await ApiService.userInfo();
-      dispatch({ type: 'RESTORE_AUTH', auth, user: { ...user, ...userInfo } });
+      try {
+        const auth = await ApiService.getCachedAuthAsync();
+        const googleUser = auth && await ApiService.googleUserInfo();
+        const userInfo = auth && await ApiService.verifyUser();
+        dispatch({ type: 'RESTORE_AUTH', auth, user: { ...googleUser, ...userInfo } });
+      } catch (error) {
+        Toast.show(error.details[0].errorMessage);
+        dispatch({ type: 'RESTORE_AUTH', auth: null });
+      }
     })();
   }, []);
   const authContextValue = {
     auth: state.auth,
     user: state.user,
     login: async ({ auth, user }) => {
-      dispatch({ type: 'LOADING' });
-      const userInfo = await ApiService.userInfo();
-      dispatch({ type: 'LOGIN', auth, user: { ...user, ...userInfo } });
+      try {
+        dispatch({ type: 'LOADING' });
+        const userInfo = await ApiService.verifyUser();
+        dispatch({ type: 'LOGIN', auth, user: { ...user, ...userInfo } });
+      } catch (error) {
+        Toast.show(error.details[0].errorMessage);
+        dispatch({ type: 'LOGIN', auth: null });
+      }
     },
     logout: () => dispatch({ type: 'LOGOUT' })
   }
@@ -102,7 +87,7 @@ export default function AppNavigator() {
             state.isLoading
               ? <Stack.Screen name='Loading' component={LoadingScreen} options={{ animationEnabled: false }} />
               : state.auth
-                ? <Stack.Screen name='App' component={AppStack} />
+                ? <Stack.Screen name='App' component={MainTabNavigator} />
                 : <Stack.Screen name='Auth' component={AuthScreen} options={{ animationTypeForReplace: state.isLogout ? 'pop' : 'push' }} />
           }
         </Stack.Navigator>

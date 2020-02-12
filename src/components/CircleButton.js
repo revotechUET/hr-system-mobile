@@ -1,22 +1,15 @@
 import React from 'react';
-import { TouchableNativeFeedback, TouchableOpacity, View, Platform } from 'react-native';
+import { View } from 'react-native';
+import TouchableItem from 'react-native-tab-view/src/TouchableItem';
 
-export default function CircleButton({ children, size = 30, containerStyle, buttonStyle, backgroundColor, rippleColor, ...props }) {
+export default function CircleButton({ children, size = 30, containerStyle, buttonStyle, backgroundColor, ...props }) {
   return (
     <View style={[{ borderRadius: 100, backgroundColor }, containerStyle]}>
-      {
-        Platform.OS === 'android'
-          ? <TouchableNativeFeedback {...props} background={TouchableNativeFeedback.Ripple(rippleColor || '#aaa', true)} style={{ borderRadius: 100, overflow: 'visible' }}>
-            <View style={[{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }, buttonStyle]}>
-              {children}
-            </View>
-          </TouchableNativeFeedback>
-          : <TouchableOpacity {...props} style={{ borderRadius: 100, overflow: 'visible' }}>
-            <View style={[{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }, buttonStyle]}>
-              {children}
-            </View>
-          </TouchableOpacity>
-      }
+      <TouchableItem {...props} style={{ borderRadius: 100, overflow: 'visible' }}>
+        <View style={[{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }, buttonStyle]}>
+          {children}
+        </View>
+      </TouchableItem>
     </View >
   )
 }

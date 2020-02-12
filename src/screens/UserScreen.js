@@ -14,9 +14,7 @@ export default class UserScreen extends React.Component {
       {
         text: 'Không',
         style: 'default',
-        onPress: () => {
-          console.log(this.context);
-
+        onPress: async () => {
         }
       },
       {

@@ -84,7 +84,17 @@ function guidFromClientId(clientId) {
 export async function userInfoAsync({ accessToken }) {
   return fetch('https://www.googleapis.com/userinfo/v2/me', {
     headers: { Authorization: `Bearer ${accessToken}` },
-  }).then(res => res.json());
+  }).then(async res => {
+    const userInfo = await res.json();
+    return {
+      id: userInfo.id,
+      name: userInfo.name,
+      givenName: userInfo.given_name,
+      familyName: userInfo.family_name,
+      photoUrl: userInfo.picture,
+      email: userInfo.email,
+    }
+  });
 }
 
 export async function logInAsync(config) {
@@ -117,14 +127,7 @@ export async function logInAsync(config) {
     return {
       type: 'success',
       auth: logInResult,
-      user: {
-        id: userInfo.id,
-        name: userInfo.name,
-        givenName: userInfo.given_name,
-        familyName: userInfo.family_name,
-        photoUrl: userInfo.picture,
-        email: userInfo.email,
-      },
+      user: userInfo,
     };
   } catch (error) {
     if (error.message.toLowerCase().indexOf('user cancelled') > -1) {

@@ -1,13 +1,45 @@
 import axios from 'axios';
+import { debounce } from 'lodash';
+import { useEffect, useRef } from 'react';
 import Toast from 'react-native-root-toast';
 import * as Google from './GoogleAuthService';
 import StorageService from './StorageService';
-
 
 const config = require('../../config/default.js');
 const { authConfig, baseUrl } = config;
 
 const AuthStorageKey = '@OsamHr:GoogleOAuth';
+
+function makeCancelable(promise) {
+  let isCanceled = false;
+  const wrappedPromise = new Promise((resolve, reject) => {
+    promise
+      .then(val => (isCanceled ? reject({ isCanceled }) : resolve(val)))
+      .catch(error => (isCanceled ? reject({ isCanceled }) : reject(error)));
+  });
+  return {
+    promise: wrappedPromise,
+    cancel() {
+      isCanceled = true;
+    },
+  };
+}
+
+function useCancellable() {
+  const promises = useRef([]);
+  useEffect(() => {
+    return () => {
+      promises.current.forEach(p => p.cancel());
+      promises.current = [];
+    };
+  }, []);
+  function cancellablePromise(p) {
+    const cPromise = makeCancelable(p);
+    promises.current.push(cPromise);
+    return cPromise.promise;
+  }
+  return cancellablePromise;
+}
 
 class ApiService {
   constructor() {
@@ -15,7 +47,7 @@ class ApiService {
       const auth = await this.getCachedAuthAsync();
       if (auth) {
         axios.defaults.headers.common['Authorization'] = `Bearer ${auth.accessToken}`;
-        axios.defaults.headers.common['scopes'] = authConfig.scopes.join(' ');
+        // axios.defaults.headers.common['scopes'] = authConfig.scopes.join(' ');
       }
       axios.defaults.baseURL = baseUrl;
     })();
@@ -26,6 +58,8 @@ class ApiService {
     window.StorageService = StorageService;
   }
 
+  useCancellable = useCancellable;
+
   async post(fnName, data, config = {}) {
     try {
       const res = await axios.post('', {
@@ -33,31 +67,37 @@ class ApiService {
         parameters: data,
         // sessionState: string,
       }, config);
-      if (res.data.error) throw res;
+      if (res.data.error) throw res.data.error;
       return res.data.response.result;
     } catch (error) {
+      // token expired
+      if (error.response.status === 401) {
+        console.log('refresh access token');
+        const auth = await this.getCachedAuthAsync(false);
+        await this.refreshAccessToken(auth);
+        return this.post.call(this, fnName, data, config);
+      }
       console.log(error);
-      if (config.throw) {
-        throw error;
+      if (!config.notThrow) {
+        let { details: [e] = [{}] } = error;
+        if (!e['@type'] || !e['@type'].includes('ExecutionError')) {
+          e.errorMessage = 'Lỗi kết nối!'
+        }
+        Toast.show(e.errorMessage);
       } else {
-        let msg = error.response && error.response.data && error.response.data.reason || 'Lỗi kết nối!';
-        Toast.show(msg);
+        throw error;
       }
     }
   }
 
   //#region auth
-  async getUser() {
-    return StorageService.get('user');
-  }
   async login() {
     try {
       const res = await Google.logInAsync(authConfig);
       const { type, user, auth } = res;
       if (type === 'success') {
         await StorageService.set('user', user);
-        await this.cacheAuthAsync(auth);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${auth.accessToken}`;
+        await this.setAuthAsync(auth);
       }
       return res;
     } catch (e) {
@@ -66,37 +106,33 @@ class ApiService {
       return { type: 'fail' }
     }
   }
-  async cacheAuthAsync(authState) {
+  async setAuthAsync(authState) {
+    if (authState) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${authState.accessToken}`;
+    }
     return StorageService.set(AuthStorageKey, authState);
   }
-  _refreshAccessTokenTimeout = null;
   async getCachedAuthAsync(refresh = true) {
-    const authState = await StorageService.get(AuthStorageKey);
+    let authState = await StorageService.get(AuthStorageKey);
+    if (!refresh) return authState;
     if (authState) {
-      if (!refresh) return authState;
       if (this.checkIfTokenExpired(authState)) {
-        return this.refreshAccessToken(authState);
-      } else {
-        if (this._refreshAccessTokenTimeout) {
-          clearTimeout(this._refreshAccessTokenTimeout);
-        }
-        this._refreshAccessTokenTimeout = setTimeout(() => {
-          this.refreshAccessToken(authState);
-        }, new Date(authState.accessTokenExpirationDate) - new Date() - 1000);
-        return authState;
+        authState = await this.refreshAccessToken(authState);
       }
+      return authState;
     }
     return null;
   }
   checkIfTokenExpired({ accessTokenExpirationDate }) {
     return new Date(accessTokenExpirationDate) < new Date();
   }
-  async refreshAccessToken({ refreshToken, ...prevAuth }) {
+  refreshAccessToken = debounce(async ({ refreshToken, ...prevAuth }) => {
     const auth = await Google.refreshAuthAsync({ config: authConfig, refreshToken });
-    const newAuth = { ...prevAuth, ...auth, refreshToken };
-    await this.cacheAuthAsync(newAuth);
+    const newAuth = { ...prevAuth, ...auth, refreshToken: auth.refreshToken || refreshToken };
+    await this.setAuthAsync(newAuth);
+    console.log('token refreshed', newAuth);
     return newAuth;
-  }
+  }, 5000, { leading: true, trailing: false });
   async logout() {
     try {
       const auth = await this.getCachedAuthAsync(false);
@@ -105,11 +141,17 @@ class ApiService {
         accessToken: auth.accessToken,
         ...authConfig,
       });
-      this.cacheAuthAsync(null);
-      // await StorageService.dropStorage();
+      this.setAuthAsync(null);
     } catch (e) {
       Toast.show('Đăng xuất thất bại');
     }
+  }
+  async verifyUser() {
+    return this.post('verifyUser');
+  }
+  async googleUserInfo() {
+    const auth = await this.getCachedAuthAsync(false);
+    return Google.userInfoAsync(auth);
   }
   async userInfo() {
     return this.post('userInfo');
@@ -142,7 +184,7 @@ class ApiService {
     return this.post('leaveGet', payload, config);
   }
   async listUserLeaveRequest(payload) {
-    return this.post('leaveListByUser', payload);
+    return this.post('leaveList', payload);
   }
   // admin
   async listAllLeaveRequest(payload) {

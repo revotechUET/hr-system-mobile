@@ -182,9 +182,13 @@ const ListItem = ({ index, id, date, checkinTime, checkoutTime, reportStatus, re
   const onCloseModalReport = async (msg) => {
     setModalReport(false);
     if (!msg) return;
-    await ApiService.reportCheckin({ id, reportContent: msg });
-    Toast.show('Đã gửi báo cáo', { position: 0 });
-    update();
+    const ok = await ApiService.reportCheckin({ id, reportContent: msg });
+    if (ok) {
+      Toast.show('Đã gửi báo cáo', { position: 0 });
+      update();
+    } else {
+      Toast.show('Không thể gửi báo cáo', { position: 0 });
+    }
   }
   const openModalResponse = () => {
     setModalResponse(true);

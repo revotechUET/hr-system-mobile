@@ -1,17 +1,18 @@
 import Constants from 'expo-constants';
 import React from 'react';
-import { Button, PixelRatio, Platform, ScrollView, StatusBar, StyleSheet, Text } from 'react-native';
+import { Button, PixelRatio, Platform, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import ScreenContainer from '../components/ScreenContainer';
 import ApiService from '../services/ApiService';
-import Axios from 'axios';
 
 export default class DeviceInfoScreen extends React.Component {
   state = {
     gasResponse: null,
   }
+  test1 = async () => {
+  }
   testGAScript = async () => {
     try {
-      const res = await ApiService.post('test');
+      const res = await ApiService.post('test', { fromDate: new Date(), toDate: null });
       console.log(res);
       this.setState({ gasResponse: res });
     } catch (error) {
@@ -28,6 +29,9 @@ export default class DeviceInfoScreen extends React.Component {
           <Text>
             Pixel ratio {PixelRatio.get()}
           </Text>
+          <View style={{ margin: 5 }} />
+          <Button title='Button1' onPress={this.test1} />
+          <View style={{ margin: 5 }} />
           <Button title='Test GAScript' onPress={this.testGAScript} />
           {gasResponse && <Text>{JSON.stringify(gasResponse, null, '  ')}</Text>}
         </ScrollView>

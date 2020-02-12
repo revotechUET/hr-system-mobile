@@ -1,31 +1,28 @@
-import { Formik, ErrorMessage } from 'formik';
+import { ErrorMessage, Formik } from 'formik';
 import React from 'react';
 import { Picker, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Input } from 'react-native-elements';
 import { ScrollView } from 'react-native-gesture-handler';
+import Toast from 'react-native-root-toast';
 import { s } from '../../CommonStyles';
 import { ErrorText } from '../../components/BodyText';
 import DateInput from '../../components/DateInput';
 import HrButton from '../../components/HrButton';
 import ScreenContainer from '../../components/ScreenContainer';
 import Colors from '../../constants/Colors';
+import { AuthContext } from '../../Contexts';
 import ApiService from '../../services/ApiService';
-import Toast from 'react-native-root-toast';
 import Utils from '../../Utils';
 
 export default class SendRequestScreen extends React.PureComponent {
+  static contextType = AuthContext
   state = {
-    fullName: null,
     remainingLeaves: 9 + '',
     reason: 0 + '',
     startTime: null,
     endTime: null,
     notifyList: [],
     description: ``
-  }
-  async componentDidMount() {
-    const user = await ApiService.getUser();
-    this.setState({ fullName: user.name });
   }
   validate = async (values) => {
     const errors = {};
@@ -47,6 +44,8 @@ export default class SendRequestScreen extends React.PureComponent {
     }
   }
   render() {
+    const user = this.context.user || {};
+    const fullName = user.name
     return (
       <ScreenContainer style={styles.container}>
         <Formik
@@ -61,7 +60,7 @@ export default class SendRequestScreen extends React.PureComponent {
                 <Input
                   label='Nhân viên'
                   labelStyle={s.label}
-                  value={values['fullName']}
+                  value={fullName}
                   inputContainerStyle={{ borderBottomWidth: 0 }}
                   disabled
                 />
@@ -102,9 +101,11 @@ export default class SendRequestScreen extends React.PureComponent {
                   disabled={isSubmitting}
                 />
                 <ErrorMessage name='endTime'>{msg => <ErrorText style={styles.errorMessage}>{msg}</ErrorText>}</ErrorMessage>
+                {/*
                 <FormGroup label='Thông báo cho'>
                   <Text>:TODO:</Text>
                 </FormGroup>
+                */}
                 <FormGroup label='Mô tả'>
                   <TextInput
                     multiline

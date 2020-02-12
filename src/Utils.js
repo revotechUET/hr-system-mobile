@@ -2,6 +2,7 @@ import DateFormat from 'date-format';
 
 export default class Utils {
   static dateFormat = (date, format = 'dd/MM/yyyy') => {
+    if (!date) return null;
     if (typeof date !== 'object') {
       date = new Date(date);
     }

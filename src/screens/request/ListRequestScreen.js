@@ -1,15 +1,17 @@
 import React from 'react';
 import { Picker, StyleSheet, Text, View } from 'react-native';
 import { Input } from 'react-native-elements';
-import { FlatList, TouchableNativeFeedback } from 'react-native-gesture-handler';
+import { FlatList } from 'react-native-gesture-handler';
+import TouchableItem from 'react-native-tab-view/src/TouchableItem';
 import { s } from '../../CommonStyles';
 import BodyText from '../../components/BodyText';
 import DateInput from '../../components/DateInput';
 import HrButton from '../../components/HrButton';
 import ScreenContainer from '../../components/ScreenContainer';
 import Colors from '../../constants/Colors';
-import Utils from '../../Utils';
 import ApiService from '../../services/ApiService';
+import Utils from '../../Utils';
+import LoadingScreen from '../LoadingScreen';
 
 export default class ListRequestScreen extends React.Component {
   state = {
@@ -18,19 +20,22 @@ export default class ListRequestScreen extends React.Component {
     endTime: null,
     status: null,
     list: null,
+    loading: false,
   }
   componentDidMount() {
     this.update();
   }
   update = async () => {
-    const list = await ApiService.listUserLeaveRequest() || [];
-    this.setState({ list });
+    const { id, startTime, endTime, status } = this.state;
+    this.setState({ loading: true });
+    const list = await ApiService.listUserLeaveRequest({ id, startTime, endTime, status }) || [];
+    this.setState({ list, loading: false });
   }
-  goToDetail = (id) => {
-    this.props.navigation.navigate('RequestDetail', {id, title: 'Yêu cầu nghỉ ' + id});
+  goToDetail = (item) => {
+    this.props.navigation.navigate('RequestDetail', { id: item.id });
   }
   render() {
-    const { id, startTime, endTime, status, list } = this.state;
+    const { id, startTime, endTime, status, list, loading } = this.state;
     return (
       <ScreenContainer style={styles.container}>
         <View style={styles.form}>
@@ -65,13 +70,14 @@ export default class ListRequestScreen extends React.Component {
         </View>
         <View style={[s.mt3, s.flexFill]}>
           {
-            list && list.length
-              ? <FlatList
-                data={list}
-                keyExtractor={(item, index) => '' + index}
-                renderItem={({ item, index, seperators }) => <ListItem key={index} index={index + 1} {...item} goToDetail={() => this.goToDetail(item.id)} />}
-              />
-              : <BodyText style={s.textCenter}>Không tìm thấy yêu cầu nghỉ</BodyText>
+            loading ? <LoadingScreen />
+              : list && list.length
+                ? <FlatList
+                  data={list}
+                  keyExtractor={(item, index) => '' + index}
+                  renderItem={({ item, index, seperators }) => <ListItem key={index} index={index + 1} {...item} onPress={() => this.goToDetail(item)} />}
+                />
+                : <BodyText style={s.textCenter}>Không tìm thấy yêu cầu nghỉ</BodyText>
           }
         </View>
       </ScreenContainer>
@@ -79,39 +85,41 @@ export default class ListRequestScreen extends React.Component {
   }
 }
 
-const ListItem = ({ index, id, startTime, endTime, reason, status, goToDetail }) => (
+const ListItem = ({ index, id, startTime, endTime, reason, status, onPress }) => (
   <View style={{ margin: 4, backgroundColor: Colors.secondaryBackground, elevation: 2 }}>
-    <TouchableNativeFeedback style={{ padding: 8 }} onPress={goToDetail}>
-      <BodyText style={[s.w100, s.textCenter, { flexDirection: 'row', fontWeight: 'bold' }]}>{id}</BodyText>
-      <View style={{ flexDirection: 'row', }}>
-        <View style={{ alignItems: 'center', flex: 1 }}>
-          <Text style={styles.label}>Thời gian bắt đầu</Text>
-          <BodyText style={[s.flexFill, s.textCenter]}>{Utils.dateFormat(startTime, 'dd/MM/yyyy hh:mm')}</BodyText>
+    <TouchableItem style={{ padding: 8 }} onPress={onPress}>
+      <>
+        {/* <BodyText style={[s.w100, s.textCenter, { flexDirection: 'row', fontWeight: 'bold' }]}>{id}</BodyText> */}
+        <View style={{ flexDirection: 'row', }}>
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <Text style={styles.label}>Thời gian bắt đầu</Text>
+            <BodyText style={[s.flexFill, s.textCenter]}>{Utils.dateFormat(startTime, 'dd/MM/yyyy hh:mm')}</BodyText>
+          </View>
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <Text style={styles.label}>Thời gian kết thúc</Text>
+            <BodyText style={[s.flexFill, s.textCenter]}>{Utils.dateFormat(endTime, 'dd/MM/yyyy hh:mm')}</BodyText>
+          </View>
         </View>
-        <View style={{ alignItems: 'center', flex: 1 }}>
-          <Text style={styles.label}>Thời gian kết thúc</Text>
-          <BodyText style={[s.flexFill, s.textCenter]}>{Utils.dateFormat(endTime, 'dd/MM/yyyy hh:mm')}</BodyText>
+        <View style={{ flexDirection: 'row', }}>
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <Text style={styles.label}>Lý do nghỉ</Text>
+            <BodyText style={[s.flexFill, s.textCenter]}>
+              {
+                Utils.leaveReason[reason]
+              }
+            </BodyText>
+          </View>
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <Text style={styles.label}>Trạng thái</Text>
+            <BodyText style={[s.flexFill, s.textCenter]}>
+              {
+                Utils.leaveStatus[status]
+              }
+            </BodyText>
+          </View>
         </View>
-      </View>
-      <View style={{ flexDirection: 'row', }}>
-        <View style={{ alignItems: 'center', flex: 1 }}>
-          <Text style={styles.label}>Lý do nghỉ</Text>
-          <BodyText style={[s.flexFill, s.textCenter]}>
-            {
-              Utils.leaveReason[reason]
-            }
-          </BodyText>
-        </View>
-        <View style={{ alignItems: 'center', flex: 1 }}>
-          <Text style={styles.label}>Trạng thái</Text>
-          <BodyText style={[s.flexFill, s.textCenter]}>
-            {
-              Utils.leaveStatus[status]
-            }
-          </BodyText>
-        </View>
-      </View>
-    </TouchableNativeFeedback>
+      </>
+    </TouchableItem>
   </View>
 )
 

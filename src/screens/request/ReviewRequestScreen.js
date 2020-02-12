@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Modal, Picker, StyleSheet, Text, View } from 'react-native';
-import { Input, Divider } from 'react-native-elements';
-import { FlatList, TouchableNativeFeedback } from 'react-native-gesture-handler';
+import React from 'react';
+import { Picker, StyleSheet, Text, View } from 'react-native';
+import { Input } from 'react-native-elements';
+import { FlatList } from 'react-native-gesture-handler';
+import TouchableItem from 'react-native-tab-view/src/TouchableItem';
 import { s } from '../../CommonStyles';
 import BodyText from '../../components/BodyText';
 import DateInput from '../../components/DateInput';
@@ -9,8 +10,6 @@ import HrButton from '../../components/HrButton';
 import ScreenContainer from '../../components/ScreenContainer';
 import Colors from '../../constants/Colors';
 import Utils from '../../Utils';
-import Icon from '../../components/Icon';
-import CircleButton from '../../components/CircleButton';
 
 const _DATA = [
   {
@@ -89,12 +88,15 @@ const _DATA = [
   },
 ]
 
-export default class ReviewRequestScreen extends React.Component {
+export default class ListReviewRequestScreen extends React.Component {
   state = {
     code: '',
     fromDate: null,
     toDate: null,
     status: null,
+  }
+  goToDetail = (item) => {
+    this.props.navigation.navigate('ReviewRequestDetail', { id: item.id });
   }
   render() {
     const { code, fromDate, toDate, status } = this.state;
@@ -136,7 +138,7 @@ export default class ReviewRequestScreen extends React.Component {
           <FlatList
             data={_DATA}
             keyExtractor={(item, index) => '' + index}
-            renderItem={({ item, index, seperators }) => <ListItem key={index} index={index + 1} {...item} />}
+            renderItem={({ item, index, seperators }) => <ListItem key={index} index={index + 1} {...item} onPress={() => this.goToDetail(item)} />}
           />
         </View>
       </ScreenContainer>
@@ -144,116 +146,44 @@ export default class ReviewRequestScreen extends React.Component {
   }
 }
 
-const ModalReview = ({ close, visible, id, name, from, to, reason, status, description }) => (
-  <Modal
-    transparent
-    onRequestClose={close}
-    visible={visible}
-  >
-    <View style={styles.modalContainer}>
-      <View style={styles.header}>
-        <CircleButton onPress={close}>
-          <Icon name='arrow-left' size={18} />
-        </CircleButton>
-        <BodyText style={{ marginLeft: 10 }}>Yêu cầu nghỉ {id}</BodyText>
-      </View>
-      <Divider />
-      <View style={styles.infoContainer}>
-        <View style={styles.infoRow}>
-          <BodyText style={styles.field}>Nhân viên</BodyText>
-          <BodyText style={styles.value}>{name}</BodyText>
-        </View>
-        <View style={styles.infoRow}>
-          <BodyText style={styles.field}>Trạng thái</BodyText>
-          <BodyText style={styles.value}>{status === 0 ? 'Chờ phê duyệt' : status === 1 ? 'Đã phê duyệt' : status === 2 ? 'Đã từ chối' : 'Đã huỷ'}</BodyText>
-        </View>
-        <View style={styles.infoRow}>
-          <BodyText style={styles.field}>Lý do nghỉ</BodyText>
-          <BodyText style={styles.value}>{reason === 0 ? 'Lý do cá nhân' : reason === 1 ? 'Đi công vụ' : 'Đi công tác'}</BodyText></View>
-        <View style={styles.infoRow}>
-          <BodyText style={styles.field}>Thời gian nghỉ từ</BodyText>
-          <BodyText style={styles.value}>{Utils.dateFormat(from, 'dd/MM/yyyy hh:mm')}</BodyText>
-        </View>
-        <View style={styles.infoRow}>
-          <BodyText style={styles.field}>Thời gian nghỉ đến</BodyText>
-          <BodyText style={styles.value}>{Utils.dateFormat(to, 'dd/MM/yyyy hh:mm')}</BodyText>
-        </View>
-        <View style={styles.infoRow}>
-          <BodyText style={styles.field}>Thông báo cho</BodyText>
-          <BodyText style={styles.value}></BodyText>
-        </View>
-        <View style={styles.infoRow}>
-          <BodyText style={styles.field}>Mô tả</BodyText>
-          <BodyText style={styles.value}>{description}</BodyText>
-        </View>
-      </View>
-      <View style={{ flex: 1 }}></View>
-      <View style={{ flexDirection: 'row' }}>
-        <HrButton
-          title='Từ chối'
-          titleStyle={{ marginLeft: 20, marginRight: 20 }}
-          buttonStyle={{ backgroundColor: Colors.errorBackground }}
-          containerStyle={{ flex: 1, marginRight: 10 }}
-          onPress={close}
-        />
-        <HrButton
-          title='Phê duyệt'
-          titleStyle={{ marginLeft: 20, marginRight: 20 }}
-          buttonStyle={{ backgroundColor: Colors.primaryColor }}
-          containerStyle={{ flex: 1 }}
-          onPress={close}
-        />
-      </View>
-    </View>
-  </Modal>
-)
-
 const ListItem = (props) => {
-  const { index, code, name, from, to, reason, status } = props;
-  const [modalReview, setModalReview] = useState(false);
+  const { index, code, name, from, to, reason, status, onPress } = props;
   return (
     <View style={{ margin: 4, backgroundColor: Colors.secondaryBackground, elevation: 2 }}>
-      <TouchableNativeFeedback style={{ padding: 8 }} onPress={() => setModalReview(true)}>
-        <View style={{ flexDirection: 'row', }}>
-          <View style={{ alignItems: 'center', flex: 1 }}>
-            <Text style={styles.label}>Mã</Text>
-            <BodyText style={[s.flexFill, s.textCenter]}>{code}</BodyText>
+      <TouchableItem style={{ padding: 8 }} onPress={onPress}>
+        <>
+          <View style={{ flexDirection: 'row', }}>
+            <View style={{ alignItems: 'center', flex: 1 }}>
+              <Text style={styles.label}>Mã</Text>
+              <BodyText style={[s.flexFill, s.textCenter]}>{code}</BodyText>
+            </View>
+            <View style={{ alignItems: 'center', flex: 1 }}>
+              <Text style={styles.label}>Tên nhân viên</Text>
+              <BodyText style={[s.flexFill, s.textCenter]}>{name}</BodyText>
+            </View>
           </View>
-          <View style={{ alignItems: 'center', flex: 1 }}>
-            <Text style={styles.label}>Tên nhân viên</Text>
-            <BodyText style={[s.flexFill, s.textCenter]}>{name}</BodyText>
+          <View style={{ flexDirection: 'row' }}>
+            <View style={{ alignItems: 'center', flex: 1 }}>
+              <Text style={styles.label}>Thời gian bắt đầu</Text>
+              <BodyText style={[s.flexFill, s.textCenter]}>{Utils.dateFormat(from, 'dd/MM/yyyy hh:mm')}</BodyText>
+            </View>
+            <View style={{ alignItems: 'center', flex: 1 }}>
+              <Text style={styles.label}>Thời gian kết thúc</Text>
+              <BodyText style={[s.flexFill, s.textCenter]}>{Utils.dateFormat(to, 'dd/MM/yyyy hh:mm')}</BodyText>
+            </View>
           </View>
-        </View>
-        <View style={{ flexDirection: 'row' }}>
-          <View style={{ alignItems: 'center', flex: 1 }}>
-            <Text style={styles.label}>Thời gian bắt đầu</Text>
-            <BodyText style={[s.flexFill, s.textCenter]}>{Utils.dateFormat(from, 'dd/MM/yyyy hh:mm')}</BodyText>
+          <View style={{ flexDirection: 'row', }}>
+            <View style={{ alignItems: 'center', flex: 1 }}>
+              <Text style={styles.label}>Lý do nghỉ</Text>
+              <BodyText style={[s.flexFill, s.textCenter]}>{Utils.leaveReason[reason]}</BodyText>
+            </View>
+            <View style={{ alignItems: 'center', flex: 1 }}>
+              <Text style={styles.label}>Trạng thái</Text>
+              <BodyText style={[s.flexFill, s.textCenter]}>{Utils.leaveStatus[status]}</BodyText>
+            </View>
           </View>
-          <View style={{ alignItems: 'center', flex: 1 }}>
-            <Text style={styles.label}>Thời gian kết thúc</Text>
-            <BodyText style={[s.flexFill, s.textCenter]}>{Utils.dateFormat(to, 'dd/MM/yyyy hh:mm')}</BodyText>
-          </View>
-        </View>
-        <View style={{ flexDirection: 'row', }}>
-          <View style={{ alignItems: 'center', flex: 1 }}>
-            <Text style={styles.label}>Lý do nghỉ</Text>
-            <BodyText style={[s.flexFill, s.textCenter]}>
-              {
-                reason === '0' ? 'Lý do cá nhân' : reason === '1' ? 'Đi công vụ' : 'Đi công tác'
-              }
-            </BodyText>
-          </View>
-          <View style={{ alignItems: 'center', flex: 1 }}>
-            <Text style={styles.label}>Trạng thái</Text>
-            <BodyText style={[s.flexFill, s.textCenter]}>
-              {
-                status === 'waiting' ? 'Chờ phê duyệt' : status === 1 ? 'Đã phê duyệt' : status === 2 ? 'Đã từ chối' : 'Đã huỷ'
-              }
-            </BodyText>
-          </View>
-        </View>
-      </TouchableNativeFeedback>
-      {modalReview && <ModalReview visible={modalReview} close={() => setModalReview(false)} {...props} />}
+        </>
+      </TouchableItem>
     </View>
   )
 }
