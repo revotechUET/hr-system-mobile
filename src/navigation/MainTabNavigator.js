@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { Dimensions, Image, TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { AuthContext } from '../Contexts';
+import { AppContext } from '../Contexts';
 import CheckInScreen from '../screens/CheckInScreen';
 import DeviceInfoScreen from '../screens/DeviceInfoScreen';
 import HistoryScreen from '../screens/HistoryScreen';
@@ -49,80 +49,11 @@ const RequestStackScreen = () => {
     </RequestStack.Navigator>
   )
 }
-function MyTabBar({ state, descriptors, navigation, position }) {
-  return (
-    <View style={{ flexDirection: 'row' }}>
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const label =
-          options.tabBarLabel !== undefined
-            ? options.tabBarLabel
-            : options.title !== undefined
-              ? options.title
-              : route.name;
-
-        const isFocused = state.index === index;
-
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-          });
-
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
-          }
-        };
-
-        const onLongPress = () => {
-          navigation.emit({
-            type: 'tabLongPress',
-            target: route.key,
-          });
-        };
-
-        const inputRange = state.routes.map((_, i) => i);
-        const opacity = Animated.interpolate(position, {
-          inputRange,
-          outputRange: inputRange.map(i => (i === index ? 1 : 0)),
-        });
-
-        return (
-          <TouchableOpacity
-            key={index}
-            accessibilityRole="button"
-            accessibilityStates={isFocused ? ['selected'] : []}
-            accessibilityLabel={options.tabBarAccessibilityLabel}
-            testID={options.tabBarTestID}
-            onPress={onPress}
-            onLongPress={onLongPress}
-            style={{ flex: 1 }}
-          >
-            <Animated.Text style={{ opacity }}>
-              {label}
-            </Animated.Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-}
 
 const Tab = createMaterialTopTabNavigator();
 export default ({ navigation }) => {
-  const authContext = React.useContext(AuthContext);
+  const authContext = React.useContext(AppContext);
   const user = authContext.user || {};
-  React.useEffect(() => {
-    const unsubscribe = navigation.addListener('tabPress', e => {
-      // Prevent default behavior
-      console.log('---------');
-      e.preventDefault();
-
-      // Do something manually
-      // ...
-    });
-    return unsubscribe;
-  }, [navigation]);
   return (
     <Tab.Navigator
       lazy lazyPlaceholder={LoadingScreen}
@@ -135,7 +66,7 @@ export default ({ navigation }) => {
         // style: { backgroundColor: Colors.primaryBackground },
       }}
     >
-
+{/*
       <Tab.Screen name='DeviceInfo' component={DeviceInfoScreen}
         options={{
           tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Device Info' />,
@@ -148,7 +79,7 @@ export default ({ navigation }) => {
           ),
         }}
       />
-
+ */}
       <Tab.Screen name='CheckIn' component={CheckInScreen}
         options={{
           tabBarLabel: ({ focused }) => <TabBarLabel focused={focused} label='Chấm công' />,

@@ -5,10 +5,10 @@ import { ListItem } from 'react-native-elements';
 import ScreenContainer from '../components/ScreenContainer';
 import Colors from '../constants/Colors';
 import ApiService from '../services/ApiService';
-import { AuthContext } from '../Contexts';
+import { AppContext } from '../Contexts';
 
 export default class UserScreen extends React.Component {
-  static contextType = AuthContext;
+  static contextType = AppContext;
   signOut = async () => {
     Alert.alert('Xác nhận', 'Bạn chắc chắn muốn đăng xuất?', [
       {

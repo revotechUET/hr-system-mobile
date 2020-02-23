@@ -1,30 +1,25 @@
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { BlurView } from 'expo-blur';
 import React, { useState } from 'react';
-import { FlatList, Modal, Picker, StyleSheet, Text, TextInput, View, Alert } from 'react-native';
+import { FlatList, Modal, Picker, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Button, Divider } from 'react-native-elements';
+import Toast from 'react-native-root-toast';
 import { c, s } from '../CommonStyles';
 import BodyText from '../components/BodyText';
+import CollapsiblePanel from '../components/CollapsiblePanel';
 import DateInput from '../components/DateInput';
 import HrButton from '../components/HrButton';
 import ScreenContainer from '../components/ScreenContainer';
 import Colors from '../constants/Colors';
+import ApiService from '../services/ApiService';
 import Utils from '../Utils';
 import LoadingScreen from './LoadingScreen';
-import ApiService from '../services/ApiService';
-import Toast from 'react-native-root-toast';
 
-function getFirstDayOfMonth() {
-  const now = new Date();
-  now.setDate(1);
-  now.setHours(0, 0, 0, 0);
-  return now;
-}
 export default class HistoryScreen extends React.Component {
   state = {
     modalReport: false,
     modalResponse: false,
-    fromDate: getFirstDayOfMonth(),
+    fromDate: Utils.getFirstDayOfMonth(),
     toDate: null,
     reportStatus: null,
     list: [],
@@ -37,15 +32,13 @@ export default class HistoryScreen extends React.Component {
     this.setState({ loading: true });
     const { fromDate, toDate, reportStatus } = this.state;
     const list = await ApiService.listCheckIn({ fromDate, toDate, reportStatus }) || [];
-    console.log(list);
-
     this.setState({ list, loading: false });
   }
   render() {
     const { fromDate, toDate, reportStatus, modalReport, modalResponse, loading, list } = this.state;
     return (
       <ScreenContainer style={styles.container}>
-        <View>
+        <CollapsiblePanel>
           <DateInput
             label='Thời gian bắt đầu'
             value={fromDate}
@@ -70,7 +63,7 @@ export default class HistoryScreen extends React.Component {
             </Picker>
           </View>
           <HrButton title='Tìm kiếm' onPress={this.update} />
-        </View>
+        </CollapsiblePanel>
         {
           loading
             ? <LoadingScreen />

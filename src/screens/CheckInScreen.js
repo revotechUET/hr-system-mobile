@@ -4,16 +4,45 @@ import BodyText from '../components/BodyText';
 import CircleButton from '../components/CircleButton';
 import ScreenContainer from '../components/ScreenContainer';
 import Colors from '../constants/Colors';
-import { AuthContext } from '../Contexts';
+import { AppContext } from '../Contexts';
 import ApiService from '../services/ApiService';
 import LoadingScreen from './LoadingScreen';
 
 export default function CheckInScreen() {
   const cancellable = ApiService.useCancellable();
-  const context = useContext(AuthContext);
+  const context = useContext(AppContext);
   const user = context.user || {};
+  const setting = context.setting || {};
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [points, setPoints] = useState(0);
+  const [showCheckin, setShowCheckin] = useState(false);
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const userPayroll = await cancellable(ApiService.getPayrollThisMonth());
+      if (userPayroll) {
+        console.log(userPayroll);
+        setPoints(userPayroll.points);
+      }
+      let show = true;
+      const workDay = setting.workDays[new Date().getDay()];
+      switch (workDay) {
+        case 0:
+          show = false;
+          break;
+        case 1:
+          if (new Date() >= new Date(setting.morningEnd)) show = false;
+          break;
+        case 2:
+        case 3:
+          if (new Date() >= new Date(setting.afternoonEnd)) show = false;
+          break;
+      }
+      setShowCheckin(show);
+      setLoading(false);
+    })();
+  }, [setting]);
   const update = useCallback(async () => {
     try {
       const { status } = await cancellable(ApiService.checkingStatus());
@@ -21,111 +50,121 @@ export default function CheckInScreen() {
       setStatus(status);
     } catch (error) {
     }
-  })
+  }, [cancellable]);
   const checkIn = useCallback(async () => {
     try {
       setLoading(true);
       const res = await cancellable(ApiService.checkIn());
       console.log(res);
       await update();
-      setLoading(false);
     } catch (error) {
+    } finally {
+      setLoading(false);
     }
-  }, [])
+  }, [cancellable, update])
   const checkOut = useCallback(async () => {
     try {
       setLoading(true);
       await cancellable(ApiService.checkOut());
       await update();
+    } finally {
       setLoading(false);
-    } catch (error) {
     }
-  }, [])
+  }, [cancellable, update])
   useEffect(() => {
     update();
   }, [])
   return (
     <ScreenContainer style={styles.container} loading={status === null}>
-      <BodyText>Chúc bạn ngày mới vui vẻ</BodyText>
-      {
-        loading ?
-          <CircleButton
-            disabled
-            size={70 * PixelRatio.get()}
-            containerStyle={styles.buttonContainer}
-          >
-            <ActivityIndicator color={Colors.primaryColor} size='large'/>
-          </CircleButton>
-          : status === 0 ?
-            <CircleButton
-              size={70 * PixelRatio.get()}
-              backgroundColor={Colors.primaryColor}
-              containerStyle={styles.buttonContainer}
-              onPress={checkIn}
-            >
-              <BodyText style={styles.buttonText}>Check in</BodyText>
-            </CircleButton>
-            : status === 1 ?
+      <BodyText>{setting.welcomeMessage}</BodyText>
+      <View style={{ height: 100 * PixelRatio.get(), justifyContent: 'center' }} >
+        {
+          loading ?
+            <ActivityIndicator color={Colors.primaryColor} size='large' />
+            : status === 0 ?
+              showCheckin &&
               <CircleButton
                 size={70 * PixelRatio.get()}
-                backgroundColor='#FF9800'
+                backgroundColor={Colors.primaryColor}
                 containerStyle={styles.buttonContainer}
-                onPress={checkOut}
+                onPress={checkIn}
               >
-                <BodyText style={styles.buttonText}>Check out</BodyText>
+                <BodyText style={styles.buttonText}>Check in</BodyText>
               </CircleButton>
-              :
-              <CircleButton
-                disabled
-                size={70 * PixelRatio.get()}
-                backgroundColor={Colors.disabledBackground}
-                containerStyle={styles.buttonContainer}
-              >
-                <BodyText style={[styles.buttonText]}>Đã check out</BodyText>
-              </CircleButton>
-      }
+              : status === 1 ?
+                <CircleButton
+                  size={70 * PixelRatio.get()}
+                  backgroundColor='#FF9800'
+                  containerStyle={styles.buttonContainer}
+                  onPress={checkOut}
+                >
+                  <BodyText style={styles.buttonText}>Check out</BodyText>
+                </CircleButton>
+                :
+                <CircleButton
+                  disabled
+                  size={70 * PixelRatio.get()}
+                  backgroundColor={Colors.disabledBackground}
+                  containerStyle={styles.buttonContainer}
+                >
+                  <BodyText style={[styles.buttonText]}>Đã check out</BodyText>
+                </CircleButton>
+        }
+      </View>
       {
         user
           ? <>
             <BodyText style={{ margin: 20 }}>{user.name}</BodyText>
             <View style={styles.infoContainer}>
-              <View style={styles.infoRow}>
-                <BodyText style={styles.field}>
-                  Bộ phận:
-                  </BodyText>
-                <BodyText style={styles.value}>
-                  Phong phat trien sp
-                  </BodyText>
-              </View>
+              {
+                user.departments && user.departments.length
+                  ? user.departments.map((d, idx) => (
+                    <View key={d.id} style={[styles.infoRow, { marginTop: 0 }]}>
+                      <BodyText style={styles.field}>
+                        {idx === 0 ? 'Bộ phận:' : null}
+                      </BodyText>
+                      <BodyText style={styles.value}>
+                        {d.name}
+                      </BodyText>
+                    </View>
+                  )) : <View style={styles.infoRow}>
+                    <BodyText style={styles.field}>
+                      Bộ phận:
+                      </BodyText>
+                    <BodyText style={styles.value}>
+                      Không có
+                    </BodyText>
+                  </View>
+              }
               <View style={styles.infoRow}>
                 <BodyText style={styles.field}>
                   Loại hợp đồng:
-                  </BodyText>
+                </BodyText>
                 <BodyText style={styles.value}>
-                  Hop dong chinh thuc
-                  </BodyText>
+                  {user.contract ? user.contract.name : 'Không có'}
+                </BodyText>
               </View>
               <View style={styles.infoRow}>
                 <BodyText style={styles.field}>
                   Số công của tháng:
                   </BodyText>
                 <BodyText style={styles.value}>
-                  22
-                  </BodyText>
+                  {points}
+                </BodyText>
               </View>
               <View style={styles.infoRow}>
                 <BodyText style={styles.field}>
                   Số ngày phép còn lại:
                   </BodyText>
                 <BodyText style={styles.value}>
-                  09
+                  :TODO:
                   </BodyText>
               </View>
             </View>
           </>
           : <LoadingScreen />
       }
-    </ScreenContainer>
+    </ScreenContainer >
   )
 }
 

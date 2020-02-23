@@ -6,7 +6,7 @@ import * as Google from './GoogleAuthService';
 import StorageService from './StorageService';
 
 const config = require('../../config/default.js');
-const { authConfig, baseUrl } = config;
+const { authConfig, baseUrl, adminBaseUrl } = config;
 
 const AuthStorageKey = '@OsamHr:GoogleOAuth';
 
@@ -70,14 +70,14 @@ class ApiService {
       if (res.data.error) throw res.data.error;
       return res.data.response.result;
     } catch (error) {
+      console.log(error);
       // token expired
-      if (error.response.status === 401) {
+      if (error.response && error.response.status === 401) {
         console.log('refresh access token');
         const auth = await this.getCachedAuthAsync(false);
         await this.refreshAccessToken(auth);
         return this.post.call(this, fnName, data, config);
       }
-      console.log(error);
       if (!config.notThrow) {
         let { details: [e] = [{}] } = error;
         if (!e['@type'] || !e['@type'].includes('ExecutionError')) {
@@ -88,6 +88,9 @@ class ApiService {
         throw error;
       }
     }
+  }
+  async postAdmin(fnName, data, config) {
+    return this.post(fnName, data, { baseURL: adminBaseUrl,...config})
   }
 
   //#region auth
@@ -146,15 +149,12 @@ class ApiService {
       Toast.show('Đăng xuất thất bại');
     }
   }
-  async verifyUser() {
-    return this.post('verifyUser');
-  }
   async googleUserInfo() {
-    const auth = await this.getCachedAuthAsync(false);
+    const auth = await this.getCachedAuthAsync();
     return Google.userInfoAsync(auth);
   }
-  async userInfo() {
-    return this.post('userInfo');
+  async userInfo(payload) {
+    return this.post('userInfo', payload);
   }
   //#endregion
 
@@ -177,26 +177,36 @@ class ApiService {
   //#endregion
 
   //#region leave
-  async sendLeaveRequest(payload, config) {
-    return this.post('leaveAdd', payload, config);
+  async sendLeaveRequest(payload) {
+    return this.post('leaveAdd', payload);
   }
-  async getLeaveRequest(payload, config) {
-    return this.post('leaveGet', payload, config);
+  async getLeaveRequest(payload) {
+    return this.post('leaveGet', payload);
   }
   async listUserLeaveRequest(payload) {
     return this.post('leaveList', payload);
   }
-  // admin
-  async listAllLeaveRequest(payload) {
-    return this.post('leaveList', payload);
-  }
-  async approveLeaveRequest(payload) {
-    return this.post('leaveApprove', payload);
-  }
-  async rejectLeaveRequest(payload) {
-    return this.post('leaveReject', payload);
+
+  //#region setting
+  async getSetting() {
+    return this.post('getSetting');
   }
   //#endregion
+
+  //#region admin
+  async listLeaveRequest(payload) {
+    return this.postAdmin('leaveList', payload);
+  }
+  async approveLeaveRequest(payload) {
+    return this.postAdmin('leaveApprove', payload);
+  }
+  async rejectLeaveRequest(payload) {
+    return this.postAdmin('leaveReject', payload);
+  }
+  //#endregion
+  async getPayrollThisMonth() {
+    return this.post('getPayrollThisMonth');
+  }
 }
 
 export default new ApiService();

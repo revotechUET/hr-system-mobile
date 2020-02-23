@@ -22,4 +22,11 @@ export default class Utils {
     '1': 'Đi công vụ',
     '2': 'Đi công tác',
   }
+
+  static getFirstDayOfMonth() {
+    const now = new Date();
+    now.setDate(1);
+    now.setHours(0, 0, 0, 0);
+    return now;
+  }
 }

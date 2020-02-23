@@ -1,153 +1,92 @@
-import React from 'react';
+import React, { useReducer, useCallback, useEffect } from 'react';
 import { Picker, StyleSheet, Text, View } from 'react-native';
 import { Input } from 'react-native-elements';
 import { FlatList } from 'react-native-gesture-handler';
 import TouchableItem from 'react-native-tab-view/src/TouchableItem';
 import { s } from '../../CommonStyles';
 import BodyText from '../../components/BodyText';
+import CollapsiblePanel from '../../components/CollapsiblePanel';
 import DateInput from '../../components/DateInput';
 import HrButton from '../../components/HrButton';
 import ScreenContainer from '../../components/ScreenContainer';
 import Colors from '../../constants/Colors';
 import Utils from '../../Utils';
+import LoadingView from '../../components/LoadingView';
+import ApiService from '../../services/ApiService';
 
-const _DATA = [
-  {
-    code: 1,
-    name: 'Họ Và Tên',
-    from: new Date(),
-    to: new Date(),
-    reason: 0,
-    notifyList: [],
-    description: 'mo ta',
-    status: 0,
-  },
-  {
-    code: 2,
-    name: 'Họ Và Tên',
-    from: new Date(),
-    to: new Date(),
-    status: 3,
-    reason: 1,
-  },
-  {
-    code: 3,
-    name: 'Họ Và Tên',
-    from: new Date(),
-    to: new Date(),
-    status: 0,
-    reason: 2,
-  },
-  {
-    code: 4,
-    name: 'Họ Và Tên',
-    from: new Date(),
-    to: new Date(),
-    status: 1,
-    reason: 2,
-  },
-  {
-    code: 5,
-    name: 'Họ Và Tên',
-    from: new Date(),
-    to: new Date(),
-    status: 2,
-    reason: 1,
-  },
-  {
-    code: 6,
-    name: 'Họ Và Tên',
-    from: new Date(),
-    to: new Date(),
-    status: 3,
-    reason: 2,
-  },
-  {
-    code: 7,
-    name: 'Họ Và Tên',
-    from: new Date(),
-    to: new Date(),
-    status: 2,
-    reason: 0,
-  },
-  {
-    code: 8,
-    name: 'Họ Và Tên',
-    from: new Date(),
-    to: new Date(),
-    status: 1,
-    reason: 1,
-  },
-  {
-    code: 9,
-    name: 'Họ Và Tên',
-    from: new Date(),
-    to: new Date(),
-    status: 0,
-    reason: 0,
-  },
-]
-
-export default class ListReviewRequestScreen extends React.Component {
-  state = {
-    code: '',
-    fromDate: null,
-    toDate: null,
+export default function ListReviewRequestScreen({ navigation }) {
+  const [state, setState] = useReducer((prevState, newState) => ({ ...prevState, ...newState }), {
+    id: '',
+    startTime: Utils.getFirstDayOfMonth(),
+    endTime: null,
     status: null,
-  }
-  goToDetail = (item) => {
-    this.props.navigation.navigate('ReviewRequestDetail', { id: item.id });
-  }
-  render() {
-    const { code, fromDate, toDate, status } = this.state;
-    return (
-      <ScreenContainer style={styles.container}>
-        <View style={styles.form}>
-          <Input
-            label='Mã yêu cầu'
-            labelStyle={s.label}
-            value={code}
-            containerStyle={{ marginBottom: 5 }}
-          />
-          <View style={{ marginLeft: 10, marginRight: 10 }}>
-            <Text style={{ fontWeight: 'bold' }}>Trạng thái</Text>
-            <Picker
-              selectedValue={status}
-              onValueChange={(value) => this.setState({ status: value })}
-              mode='dropdown'
-            >
-              <Picker.Item label='Tất cả' value={null} />
-              <Picker.Item label='Chưa báo lỗi' value={0} />
-              <Picker.Item label='Đang báo lỗi' value='processing' />
-              <Picker.Item label='Đã được xử lý' value='done' />
-            </Picker>
-          </View>
-          <DateInput
-            label='Thời gian bắt đầu'
-            value={fromDate}
-            onChange={(event, date) => this.setState({ fromDate: date })}
-          />
-          <DateInput
-            label='Thời gian kết thúc'
-            value={toDate}
-            onChange={(event, date) => this.setState({ toDate: date })}
-          />
-          <HrButton title='Tìm kiếm' />
+    list: null,
+    loading: false,
+  })
+  const { id, startTime, endTime, status, list, loading } = state;
+  const cancellable = ApiService.useCancellable();
+  const update = useCallback(async () => {
+    try {
+      setState({ loading: true });
+      const list = await cancellable(ApiService.listLeaveRequest({ id, startTime, endTime, status }));
+      setState({ list, loading: false });
+    } catch (error) {
+      setState({ loading: false });
+    }
+  }, [id, startTime, endTime, status]);
+  const goToDetail = useCallback((item) => {
+    navigation.navigate('ReviewRequestDetail', { id: item.id });
+  }, []);
+  useEffect(() => {
+    update();
+  }, []);
+  return (
+    <ScreenContainer style={styles.container}>
+      <CollapsiblePanel collapsibleStyle={styles.form}>
+        <Input
+          label='Mã yêu cầu'
+          labelStyle={s.label}
+          value={id}
+          containerStyle={{ marginBottom: 5 }}
+        />
+        <View style={{ marginLeft: 10, marginRight: 10 }}>
+          <Text style={{ fontWeight: 'bold' }}>Trạng thái</Text>
+          <Picker
+            selectedValue={status}
+            onValueChange={(value) => setState({ status: value })}
+            mode='dropdown'
+          >
+            <Picker.Item label='Tất cả' value={null} />
+            <Picker.Item label='Chưa báo lỗi' value={0} />
+            <Picker.Item label='Đang báo lỗi' value='processing' />
+            <Picker.Item label='Đã được xử lý' value='done' />
+          </Picker>
         </View>
-        <View style={[s.mt3, s.flexFill]}>
-          <FlatList
-            data={_DATA}
-            keyExtractor={(item, index) => '' + index}
-            renderItem={({ item, index, seperators }) => <ListItem key={index} index={index + 1} {...item} onPress={() => this.goToDetail(item)} />}
-          />
-        </View>
-      </ScreenContainer>
-    )
-  }
+        <DateInput
+          label='Thời gian bắt đầu'
+          value={startTime}
+          onChange={(event, date) => setState({ startTime: date })}
+        />
+        <DateInput
+          label='Thời gian kết thúc'
+          value={endTime}
+          onChange={(event, date) => setState({ endTime: date })}
+        />
+        <HrButton title='Tìm kiếm' onPress={update} />
+      </CollapsiblePanel>
+      <LoadingView style={[s.mt3, s.flexFill]} loading={loading}>
+        <FlatList
+          data={list}
+          keyExtractor={(item, index) => '' + index}
+          renderItem={({ item, index, seperators }) => <ListItem key={index} index={index + 1} {...item} onPress={() => goToDetail(item)} />}
+        />
+      </LoadingView>
+    </ScreenContainer>
+  )
 }
 
 const ListItem = (props) => {
-  const { index, code, name, from, to, reason, status, onPress } = props;
+  const { index, id, name, from, to, reason, status, onPress } = props;
   return (
     <View style={{ margin: 4, backgroundColor: Colors.secondaryBackground, elevation: 2 }}>
       <TouchableItem style={{ padding: 8 }} onPress={onPress}>
@@ -155,7 +94,7 @@ const ListItem = (props) => {
           <View style={{ flexDirection: 'row', }}>
             <View style={{ alignItems: 'center', flex: 1 }}>
               <Text style={styles.label}>Mã</Text>
-              <BodyText style={[s.flexFill, s.textCenter]}>{code}</BodyText>
+              <BodyText style={[s.flexFill, s.textCenter]}>{id}</BodyText>
             </View>
             <View style={{ alignItems: 'center', flex: 1 }}>
               <Text style={styles.label}>Tên nhân viên</Text>

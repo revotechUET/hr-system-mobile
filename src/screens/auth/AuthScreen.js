@@ -1,14 +1,14 @@
 import React from 'react';
 import { View } from 'react-native';
 import GoogleSigninButton from '../../components/GoogleSigninButton';
-import { AuthContext } from '../../Contexts';
+import { AppContext } from '../../Contexts';
 import ApiService from '../../services/ApiService';
 
 export default class AuthScreen extends React.Component {
   state = {
     loading: false,
   }
-  static contextType = AuthContext;
+  static contextType = AppContext;
 
   signInAsync = async () => {
     this.setState({ loading: true });

@@ -2,7 +2,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import Toast from 'react-native-root-toast';
-import { AuthContext } from '../Contexts';
+import { AppContext } from '../Contexts';
 import AuthScreen from '../screens/auth/AuthScreen';
 import LoadingScreen from '../screens/LoadingScreen';
 import ApiService from '../services/ApiService';
@@ -24,6 +24,7 @@ export default function AppNavigator() {
             isLoading: false,
             auth: action.auth,
             user: action.user,
+            setting: action.setting,
           }
         case 'LOGIN':
           return {
@@ -32,6 +33,7 @@ export default function AppNavigator() {
             isLogout: false,
             auth: action.auth,
             user: action.user,
+            setting: action.setting,
           }
         case 'LOGOUT':
           return {
@@ -55,11 +57,13 @@ export default function AppNavigator() {
     (async () => {
       try {
         const auth = await ApiService.getCachedAuthAsync();
-        const googleUser = auth && await ApiService.googleUserInfo();
-        const userInfo = auth && await ApiService.verifyUser();
-        dispatch({ type: 'RESTORE_AUTH', auth, user: { ...googleUser, ...userInfo } });
+        if (!auth) throw 'Unknown error';
+        const googleUser = await ApiService.googleUserInfo();
+        const userInfo = await ApiService.userInfo({ full: true });
+        const setting = await ApiService.getSetting();
+        dispatch({ type: 'RESTORE_AUTH', setting, auth, user: { ...googleUser, ...userInfo } });
       } catch (error) {
-        Toast.show(error.details[0].errorMessage);
+        error.details && Toast.show(error.details[0].errorMessage);
         dispatch({ type: 'RESTORE_AUTH', auth: null });
       }
     })();
@@ -67,20 +71,22 @@ export default function AppNavigator() {
   const authContextValue = {
     auth: state.auth,
     user: state.user,
+    setting: state.setting,
     login: async ({ auth, user }) => {
       try {
         dispatch({ type: 'LOADING' });
-        const userInfo = await ApiService.verifyUser();
-        dispatch({ type: 'LOGIN', auth, user: { ...user, ...userInfo } });
+        const userInfo = await ApiService.userInfo({ full: true });
+        const setting = await ApiService.getSetting();
+        dispatch({ type: 'LOGIN', setting, auth, user: { ...user, ...userInfo } });
       } catch (error) {
-        Toast.show(error.details[0].errorMessage);
+        error.details && Toast.show(error.details[0].errorMessage);
         dispatch({ type: 'LOGIN', auth: null });
       }
     },
     logout: () => dispatch({ type: 'LOGOUT' })
   }
   return (
-    <AuthContext.Provider value={authContextValue}>
+    <AppContext.Provider value={authContextValue}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName='Auth' headerMode='none'>
           {
@@ -92,6 +98,6 @@ export default function AppNavigator() {
           }
         </Stack.Navigator>
       </NavigationContainer>
-    </AuthContext.Provider>
+    </AppContext.Provider>
   )
 }

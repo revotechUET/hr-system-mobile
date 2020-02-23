@@ -21,10 +21,11 @@ const bootstrapStyleSheet = new BootstrapStyleSheet(_constants, _classes);
 export const s = bootstrapStyleSheet.create();
 export const c = bootstrapStyleSheet.constants;
 
-export default CommonStyles = {
+const CommonStyles = {
   styles: s,
   constants: c,
 }
+export default CommonStyles;
 
 export const styles = s;
 export const constants = c;

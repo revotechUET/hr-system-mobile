@@ -36,5 +36,6 @@ export default function Icon(props) {
 Icon.propTypes = {
   type: PropTypes.oneOf(['fa', 'fa5', 'ion', 'ant']),
   name: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
+  size: PropTypes.number,
 }
 

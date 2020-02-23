@@ -48,6 +48,7 @@ export default class DateInput extends React.Component {
         {
           pickDate
           && <DateTimePicker
+            style={{ backgroundColor: Colors.primaryColor }}
             mode={mode}
             value={value || new Date()}
             onChange={this.onChangeFirst}

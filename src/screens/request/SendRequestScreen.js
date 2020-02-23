@@ -10,12 +10,12 @@ import DateInput from '../../components/DateInput';
 import HrButton from '../../components/HrButton';
 import ScreenContainer from '../../components/ScreenContainer';
 import Colors from '../../constants/Colors';
-import { AuthContext } from '../../Contexts';
+import { AppContext } from '../../Contexts';
 import ApiService from '../../services/ApiService';
 import Utils from '../../Utils';
 
 export default class SendRequestScreen extends React.PureComponent {
-  static contextType = AuthContext
+  static contextType = AppContext
   state = {
     remainingLeaves: 9 + '',
     reason: 0 + '',
@@ -36,9 +36,11 @@ export default class SendRequestScreen extends React.PureComponent {
   }
   onSubmit = async (form, formBag) => {
     try {
-      await ApiService.sendLeaveRequest({ ...form }, { throw: true });
-      Toast.show('Đã gửi yêu cầu nghỉ', { position: 0 });
-      formBag.resetForm();
+      const leave = await ApiService.sendLeaveRequest({ ...form });
+      if (leave) {
+        Toast.show('Đã gửi yêu cầu nghỉ');
+        formBag.resetForm();
+      }
     } catch (error) {
       Toast.show('Không thể gửi yêu cầu nghỉ');
     }

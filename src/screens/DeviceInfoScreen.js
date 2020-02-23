@@ -24,16 +24,15 @@ export default class DeviceInfoScreen extends React.Component {
     return (
       <ScreenContainer style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollView}>
-          <Text>Device: {Constants.deviceName}</Text>
-          {Platform.OS === 'android' && <Text>Status bar height: {StatusBar.currentHeight}px</Text>}
-          <Text>
-            Pixel ratio {PixelRatio.get()}
-          </Text>
-          <View style={{ margin: 5 }} />
           <Button title='Button1' onPress={this.test1} />
           <View style={{ margin: 5 }} />
           <Button title='Test GAScript' onPress={this.testGAScript} />
           {gasResponse && <Text>{JSON.stringify(gasResponse, null, '  ')}</Text>}
+          <View style={{ margin: 5 }} />
+          <Text>{JSON.stringify(Constants, null, '  ')}</Text>
+          <Text>
+            Pixel ratio {PixelRatio.get()}
+          </Text>
         </ScrollView>
       </ScreenContainer>
     )

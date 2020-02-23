@@ -24,7 +24,8 @@ module.exports = {
     "sourceType": "module"
   },
   "plugins": [
-    "react"
+    "react",
+    "react-hooks",
   ],
   "settings": {
     "react": {
@@ -35,6 +36,7 @@ module.exports = {
     "react/display-name": 0,
     "react/prop-types": 0,
     "no-unused-vars": 0,
-    "no-empty": "off"
+    "no-empty": "off",
+    "react-hooks/rules-of-hooks": "error",
   },
 };

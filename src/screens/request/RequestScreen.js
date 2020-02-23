@@ -2,7 +2,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import React from 'react';
 import { Dimensions } from 'react-native';
 import Colors from '../../constants/Colors';
-import { AuthContext } from '../../Contexts';
+import { AppContext } from '../../Contexts';
 import TabBarLabel from '../../navigation/TabBarLabel';
 import LoadingScreen from '../LoadingScreen';
 import ListRequestScreen from './ListRequestScreen';
@@ -11,7 +11,7 @@ import SendRequestScreen from './SendRequestScreen';
 
 const Tab = createMaterialTopTabNavigator();
 export default class RequestNavigator extends React.Component {
-  static contextType = AuthContext;
+  static contextType = AppContext;
   render() {
     const user = this.context.user || {};
     const role = user.role;

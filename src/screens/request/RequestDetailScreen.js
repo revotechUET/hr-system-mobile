@@ -20,12 +20,13 @@ export default function RequestDetailScreen({ navigation, route }) {
       try {
         const request = await cancellable(ApiService.getLeaveRequest({ id }));
         setRequest(request);
+      } catch (e) {
+      } finally {
         setLoading(false);
-      } catch (error) {
       }
     }
     getRequest();
-  }, []);
+  }, [cancellable, navigation, route.params]);
   if (loading) return <LoadingScreen />;
   const { id, startTime, endTime, reason, status, description } = request || {};
   return (
@@ -33,7 +34,7 @@ export default function RequestDetailScreen({ navigation, route }) {
       <View style={styles.infoContainer}>
         <View style={styles.infoRow}>
           <BodyText style={styles.field}>Mã yêu cầu</BodyText>
-          <BodyText selectable style={[styles.value]}>{id}</BodyText>
+          <BodyText selectable style={[styles.value, {textTransform: 'uppercase'}]}>{id}</BodyText>
         </View>
         <View style={styles.infoRow}>
           <BodyText style={styles.field}>Trạng thái</BodyText>
