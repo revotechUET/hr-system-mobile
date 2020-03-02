@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import GoogleSigninButton from '../../components/GoogleSigninButton';
 import { AppContext } from '../../Contexts';
 import ApiService from '../../services/ApiService';
+import Colors from '../../constants/Colors';
 
 export default class AuthScreen extends React.Component {
   state = {
@@ -22,7 +23,7 @@ export default class AuthScreen extends React.Component {
   render() {
     const { loading } = this.state;
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.primaryBackground }}>
         <GoogleSigninButton onPress={() => this.signInAsync()} loading={loading} />
       </View>
     )

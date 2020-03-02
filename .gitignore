@@ -15,3 +15,8 @@ web-report/
 
 config/*local*
 .vscode/**/*
+
+config/**/*
+!config/default.js
+
+.expo-shared

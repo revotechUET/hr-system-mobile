@@ -4,8 +4,9 @@ import { useEffect, useRef } from 'react';
 import Toast from 'react-native-root-toast';
 import * as Google from './GoogleAuthService';
 import StorageService from './StorageService';
+import RNRestart from 'react-native-restart';
 
-const config = require('../../config/default.js');
+const config = require('../../config');
 const { authConfig, baseUrl, adminBaseUrl } = config;
 
 const AuthStorageKey = '@OsamHr:GoogleOAuth';
@@ -51,6 +52,7 @@ class ApiService {
       }
       axios.defaults.baseURL = baseUrl;
     })();
+    this.refreshTokenTries = 0;
 
     /// debug
     // GLOBAL.XMLHttpRequest = GLOBAL.originalXMLHttpRequest || GLOBAL.XMLHttpRequest;
@@ -72,13 +74,22 @@ class ApiService {
     } catch (error) {
       console.log(error);
       // token expired
-      if (error.response && error.response.status === 401) {
+      if (error.response && error.response.status > 400 && error.response.status < 500) {
+        if (this.refreshTokenTries > 2) {
+          Toast.show('Authrozation failed');
+          await this.logout();
+          this.refreshTokenTries = 0;
+          RNRestart.Restart();
+          return;
+        }
+        await new Promise(res => setTimeout(res, 1000 * this.refreshTokenTries));
         console.log('refresh access token');
+        this.refreshTokenTries = this.refreshTokenTries + 1;
         const auth = await this.getCachedAuthAsync(false);
         await this.refreshAccessToken(auth);
         return this.post.call(this, fnName, data, config);
       }
-      if (!config.notThrow) {
+      if (!config.throw) {
         let { details: [e] = [{}] } = error;
         if (!e['@type'] || !e['@type'].includes('ExecutionError')) {
           e.errorMessage = 'Lỗi kết nối!'
@@ -90,7 +101,7 @@ class ApiService {
     }
   }
   async postAdmin(fnName, data, config) {
-    return this.post(fnName, data, { baseURL: adminBaseUrl,...config})
+    return this.post(fnName, data, { baseURL: adminBaseUrl, ...config })
   }
 
   //#region auth
@@ -154,7 +165,7 @@ class ApiService {
     return Google.userInfoAsync(auth);
   }
   async userInfo(payload) {
-    return this.post('userInfo', payload);
+    return this.post('userInfo', payload, { throw: true });
   }
   //#endregion
 
@@ -195,17 +206,20 @@ class ApiService {
 
   //#region admin
   async listLeaveRequest(payload) {
-    return this.postAdmin('leaveList', payload);
+    return this.post('leaveListByDepartment', payload);
   }
   async approveLeaveRequest(payload) {
-    return this.postAdmin('leaveApprove', payload);
+    return this.post('leaveApprove', payload);
   }
   async rejectLeaveRequest(payload) {
-    return this.postAdmin('leaveReject', payload);
+    return this.post('leaveReject', payload);
   }
   //#endregion
   async getPayrollThisMonth() {
     return this.post('getPayrollThisMonth');
+  }
+  async getRemainingLeaves() {
+    return this.post('getRemainingLeaves');
   }
 }
 

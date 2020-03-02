@@ -1,4 +1,4 @@
-import React, { useReducer, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useReducer } from 'react';
 import { Picker, StyleSheet, Text, View } from 'react-native';
 import { Input } from 'react-native-elements';
 import { FlatList } from 'react-native-gesture-handler';
@@ -8,16 +8,16 @@ import BodyText from '../../components/BodyText';
 import CollapsiblePanel from '../../components/CollapsiblePanel';
 import DateInput from '../../components/DateInput';
 import HrButton from '../../components/HrButton';
+import LoadingView from '../../components/LoadingView';
 import ScreenContainer from '../../components/ScreenContainer';
 import Colors from '../../constants/Colors';
-import Utils from '../../Utils';
-import LoadingView from '../../components/LoadingView';
 import ApiService from '../../services/ApiService';
+import Utils from '../../Utils';
 
 export default function ListReviewRequestScreen({ navigation }) {
   const [state, setState] = useReducer((prevState, newState) => ({ ...prevState, ...newState }), {
     id: '',
-    startTime: Utils.getFirstDayOfMonth(),
+    startTime: null,
     endTime: null,
     status: null,
     list: null,

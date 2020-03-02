@@ -64,7 +64,9 @@ export default function AppNavigator() {
         dispatch({ type: 'RESTORE_AUTH', setting, auth, user: { ...googleUser, ...userInfo } });
       } catch (error) {
         error.details && Toast.show(error.details[0].errorMessage);
-        dispatch({ type: 'RESTORE_AUTH', auth: null });
+        dispatch({ type: 'LOGOUT', auth: null });
+        console.log(state);
+        await ApiService.logout();
       }
     })();
   }, []);
@@ -80,7 +82,8 @@ export default function AppNavigator() {
         dispatch({ type: 'LOGIN', setting, auth, user: { ...user, ...userInfo } });
       } catch (error) {
         error.details && Toast.show(error.details[0].errorMessage);
-        dispatch({ type: 'LOGIN', auth: null });
+        dispatch({ type: 'LOGOUT', auth: null });
+        await ApiService.logout();
       }
     },
     logout: () => dispatch({ type: 'LOGOUT' })

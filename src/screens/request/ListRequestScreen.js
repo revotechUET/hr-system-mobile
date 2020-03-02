@@ -1,20 +1,18 @@
 import React, { useCallback, useEffect, useReducer } from 'react';
 import { Picker, StyleSheet, Text, View } from 'react-native';
-import Collapsible from 'react-native-collapsible';
 import { Input } from 'react-native-elements';
 import { FlatList } from 'react-native-gesture-handler';
 import TouchableItem from 'react-native-tab-view/src/TouchableItem';
 import { s } from '../../CommonStyles';
 import BodyText from '../../components/BodyText';
+import CollapsiblePanel from '../../components/CollapsiblePanel';
 import DateInput from '../../components/DateInput';
 import HrButton from '../../components/HrButton';
-import Icon from '../../components/Icon';
 import ScreenContainer from '../../components/ScreenContainer';
 import Colors from '../../constants/Colors';
 import ApiService from '../../services/ApiService';
 import Utils from '../../Utils';
 import LoadingScreen from '../LoadingScreen';
-import CollapsiblePanel from '../../components/CollapsiblePanel';
 
 export default function ListRequestScreen({ navigation }) {
   const [state, setState] = useReducer(
@@ -22,7 +20,7 @@ export default function ListRequestScreen({ navigation }) {
       return { ...prevState, ...newState };
     }, {
     id: '',
-    startTime: Utils.getFirstDayOfMonth(),
+    startTime: null,
     endTime: null,
     status: null,
     list: null,

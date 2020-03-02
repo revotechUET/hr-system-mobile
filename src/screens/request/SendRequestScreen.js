@@ -1,3 +1,4 @@
+import { subDays, startOfDay, isSameDay } from 'date-fns';
 import { ErrorMessage, Formik } from 'formik';
 import React from 'react';
 import { Picker, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -24,13 +25,32 @@ export default class SendRequestScreen extends React.PureComponent {
     notifyList: [],
     description: ``
   }
+  minDate = startOfDay(subDays(new Date(), 15));
   validate = async (values) => {
     const errors = {};
-    if (values['startTime'] <= new Date) {
-      errors['startTime'] = 'Thời gian bắt đầu không hợp lệ';
+    // if (values['startTime'] <= new Date) {
+    //   errors['startTime'] = 'Thời gian bắt đầu không hợp lệ';
+    // }
+    // if (values['endTime'] <= values['startTime']) {
+    //   errors['endTime'] = 'Thời gian kết thúc không hợp lệ';
+    // }
+    if (!values['startTime']) {
+      errors.startTime = 'Chọn thời gian bắt đầu';
+    } else if (values['startTime'] < this.minDate) {
+      errors.startTime = 'Thời gian bắt đầu không hợp lệ';
     }
-    if (values['endTime'] <= values['startTime']) {
-      errors['endTime'] = 'Thời gian kết thúc không hợp lệ';
+    if (!values['endTime']) {
+      errors.endTime = 'Chọn thời gian kết thúc'
+    } else {
+      if (values['reason'] == 1 && !isSameDay(values['startTime'], values['endTime'])) {
+        errors.endTime = 'Thời gian đi công vụ phải kết thúc trong ngày';
+      }
+      if (values['endTime'] <= values['startTime']) {
+        errors.endTime = 'Thời gian kết thúc không hợp lệ';
+      }
+    }
+    if (!values['description']) {
+      errors.description = 'Nhập mô tả';
     }
     return errors;
   }
@@ -91,7 +111,7 @@ export default class SendRequestScreen extends React.PureComponent {
                   mode='datetime'
                   format='dd/MM/yyyy hh:mm'
                   disabled={isSubmitting}
-                  minDate={new Date()}
+                  minDate={this.minDate}
                 />
                 <ErrorMessage name='startTime'>{msg => <ErrorText style={styles.errorMessage}>{msg}</ErrorText>}</ErrorMessage>
                 <DateInput
@@ -101,6 +121,7 @@ export default class SendRequestScreen extends React.PureComponent {
                   mode='datetime'
                   format='dd/MM/yyyy hh:mm'
                   disabled={isSubmitting}
+                  minDate={values['startTime'] || this.minDate}
                 />
                 <ErrorMessage name='endTime'>{msg => <ErrorText style={styles.errorMessage}>{msg}</ErrorText>}</ErrorMessage>
                 {/*
@@ -117,6 +138,7 @@ export default class SendRequestScreen extends React.PureComponent {
                     underlineColorAndroid={Colors.secondaryText}
                     editable={!isSubmitting}
                   />
+                  <ErrorMessage name='description'>{msg => <ErrorText style={styles.errorMessage}>{msg}</ErrorText>}</ErrorMessage>
                 </FormGroup>
               </ScrollView>
               <View style={{ flex: 1 }} />

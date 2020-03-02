@@ -14,35 +14,10 @@ export default function CheckInScreen() {
   const user = context.user || {};
   const setting = context.setting || {};
   const [status, setStatus] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [points, setPoints] = useState(0);
+  const [loadingStatus, setLoadingStatus] = useState(false);
+  const [points, setPoints] = useState(null);
+  const [remainingLeaves, setRemainingLeaves] = useState(null);
   const [showCheckin, setShowCheckin] = useState(false);
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const userPayroll = await cancellable(ApiService.getPayrollThisMonth());
-      if (userPayroll) {
-        console.log(userPayroll);
-        setPoints(userPayroll.points);
-      }
-      let show = true;
-      const workDay = setting.workDays[new Date().getDay()];
-      switch (workDay) {
-        case 0:
-          show = false;
-          break;
-        case 1:
-          if (new Date() >= new Date(setting.morningEnd)) show = false;
-          break;
-        case 2:
-        case 3:
-          if (new Date() >= new Date(setting.afternoonEnd)) show = false;
-          break;
-      }
-      setShowCheckin(show);
-      setLoading(false);
-    })();
-  }, [setting]);
   const update = useCallback(async () => {
     try {
       const { status } = await cancellable(ApiService.checkingStatus());
@@ -53,33 +28,73 @@ export default function CheckInScreen() {
   }, [cancellable]);
   const checkIn = useCallback(async () => {
     try {
-      setLoading(true);
+      setLoadingStatus(true);
       const res = await cancellable(ApiService.checkIn());
       console.log(res);
       await update();
     } catch (error) {
     } finally {
-      setLoading(false);
+      setLoadingStatus(false);
     }
   }, [cancellable, update])
   const checkOut = useCallback(async () => {
     try {
-      setLoading(true);
+      setLoadingStatus(true);
       await cancellable(ApiService.checkOut());
       await update();
     } finally {
-      setLoading(false);
+      setLoadingStatus(false);
     }
   }, [cancellable, update])
   useEffect(() => {
+    if (!setting.workDays) return;
+    let show = true;
+    const now = new Date();
+    const [y, m, d] = [now.getFullYear(), now.getMonth(), now.getDate()];
+    const workDay = setting.workDays[now.getDay()];
+    let morningEnd, afternoonEnd;
+    console.log('workDay', workDay);
+    switch (workDay) {
+      case 0:
+        show = false;
+        break;
+      case 1:
+        morningEnd = new Date(setting.morningEnd);
+        morningEnd.setFullYear(y, m, d);
+        show = now < morningEnd;
+        break;
+      case 2:
+      case 3:
+        afternoonEnd = new Date(setting.afternoonEnd);
+        afternoonEnd.setFullYear(y, m, d);
+        show = now < afternoonEnd;
+        break;
+    }
+    setShowCheckin(show);
     update();
-  }, [])
+    (async () => {
+      try {
+        const payrollPromise = cancellable(ApiService.getPayrollThisMonth());
+        const remainingLeavesPromise = cancellable(ApiService.getRemainingLeaves());
+        const userPayroll = await payrollPromise;
+        if (userPayroll) {
+          console.log('ngay cong', userPayroll);
+          setPoints(userPayroll.points);
+        }
+        const remainingLeaves = await remainingLeavesPromise;
+        console.log('remaining leaves', remainingLeaves);
+        setRemainingLeaves(remainingLeaves);
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, [setting]);
   return (
     <ScreenContainer style={styles.container} loading={status === null}>
       <BodyText>{setting.welcomeMessage}</BodyText>
       <View style={{ height: 100 * PixelRatio.get(), justifyContent: 'center' }} >
         {
-          loading ?
+          loadingStatus ?
             <ActivityIndicator color={Colors.primaryColor} size='large' />
             : status === 0 ?
               showCheckin &&
@@ -149,7 +164,7 @@ export default function CheckInScreen() {
                   Số công của tháng:
                   </BodyText>
                 <BodyText style={styles.value}>
-                  {points}
+                  {points !== null ? +points.toFixed(1) : '...'}
                 </BodyText>
               </View>
               <View style={styles.infoRow}>
@@ -157,8 +172,8 @@ export default function CheckInScreen() {
                   Số ngày phép còn lại:
                   </BodyText>
                 <BodyText style={styles.value}>
-                  :TODO:
-                  </BodyText>
+                  {remainingLeaves !== null ? +remainingLeaves.toFixed(1) : '...'}
+                </BodyText>
               </View>
             </View>
           </>

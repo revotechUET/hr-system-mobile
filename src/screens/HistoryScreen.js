@@ -19,7 +19,7 @@ export default class HistoryScreen extends React.Component {
   state = {
     modalReport: false,
     modalResponse: false,
-    fromDate: Utils.getFirstDayOfMonth(),
+    fromDate: null,
     toDate: null,
     reportStatus: null,
     list: [],
@@ -117,6 +117,7 @@ const ModalReport = ({ close, visible }) => {
           <BodyText>Nhập thông tin báo lỗi</BodyText>
           <TextInput
             multiline
+            autoFocus
             numberOfLines={5}
             value={msg}
             onChangeText={text => setMsg(text)}

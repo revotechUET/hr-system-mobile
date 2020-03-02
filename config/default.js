@@ -3,12 +3,13 @@ import Constants from 'expo-constants';
 const isInExpo = Constants.appOwnership === 'expo';
 
 const authConfig = {
-  clientId: '116791155078-u2nn02fui1fkgh1lmah2t8lvptaujlkj.apps.googleusercontent.com',
-  androidStandaloneAppClientId: '116791155078-51hd1n84eokjl0ins77dpighcutk3i7u.apps.googleusercontent.com',
+  clientId: '662965188559-dirqcuolk4i6nuaed5onhfh68r4l3tq8.apps.googleusercontent.com',
+  androidStandaloneAppClientId: '662965188559-gkfith6nn2op1cpuqlhmorg8p6sfequv.apps.googleusercontent.com',
   scopes: [
     'openid',
     'email',
     'profile',
+    "https://www.googleapis.com/auth/calendar",
     "https://www.googleapis.com/auth/contacts.readonly",
     "https://www.googleapis.com/auth/script.external_request",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -20,14 +21,12 @@ const authConfig = {
   }
 }
 
-const devBaseUrl = 'https://script.googleapis.com/v1/scripts/AKfycbxDyefFGXnzgZxSXTiIFps6dkpVr0cDR9NTrvvadfY:run';
-const prodBaseUrl = 'https://script.googleapis.com/v1/scripts/AKfycbxq2yjwX4RpfLkP6m00vDMIK9nT0qK1fdo42pVrI6zv6PlDy9k:run';
+const devBaseUrl = 'https://script.googleapis.com/v1/scripts/AKfycbynU9fSM_fOUG8HKZ0SPOlA0IoLDOiL09xa4JYAZdn-:run';
+const prodBaseUrl = 'https://script.googleapis.com/v1/scripts/AKfycbzFZeNaf1sXNRedlrZ-_zy_PzLTbanvlD4hRwr5oAEgyNsLIgxtWMBekCoBvftKX4aN7A:run';
 const baseUrl = isInExpo ? devBaseUrl : prodBaseUrl;
-const adminBaseUrl = 'https://script.googleapis.com/v1/scripts/AKfycbwhpiGHPYA5DjWRM9TC-QWsiWCGHLxYy4YQM4av0RUS:run';
 
 
 module.exports = {
   authConfig,
-  baseUrl,
-  adminBaseUrl
+  baseUrl
 }
